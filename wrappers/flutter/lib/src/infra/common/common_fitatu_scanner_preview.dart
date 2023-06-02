@@ -45,10 +45,7 @@ class CommonFitatuScannerPreviewState extends State<CommonFitatuScannerPreview>
         this.controller = controller?..addListener(_controllerListener);
       },
       tryHarder: widget.options.tryHarder,
-      tryRotate: widget.options.tryRotate,
       tryInverted: widget.options.tryInvert,
-      showGallery: false,
-      showToggleCamera: false,
       scanDelay: Duration(milliseconds: widget.options.scanDelay),
       scanDelaySuccess: Duration(
         milliseconds: widget.options.scanDelaySuccess,
