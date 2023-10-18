@@ -1,7 +1,7 @@
 name: fitatu_barcode_scanner
 description: Fitatu implementation of zxing scanner and navite camera API's
 publish_to: none
-version: 2.1.7
+version: 2.1.7-rc2
 
 environment:
   sdk: '>=2.19.4 <3.0.0'
