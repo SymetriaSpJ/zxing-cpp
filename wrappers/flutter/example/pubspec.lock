@@ -132,7 +132,7 @@ packages:
     description:
       path: "."
       ref: "3.5.1"
-      resolved-ref: c8cd3d0dbdc157f067793fdab4e6f68ad02d25b0
+      resolved-ref: e72cbe0e06edb868b8f568a034fdbc4d6ff14eef
       url: "https://github.com/SymetriaSpJ/ios_mobile_scanner.git"
     source: git
     version: "3.5.1"
