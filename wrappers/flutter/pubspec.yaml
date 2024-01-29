@@ -11,19 +11,19 @@ dependencies:
   flutter:
     sdk: flutter
   plugin_platform_interface: ^2.0.2
-  permission_handler: ^10.2.0
   # support iOS
   mobile_scanner:
     git:
       url: https://github.com/SymetriaSpJ/ios_mobile_scanner.git
       ref: 3.5.1
+  permission_handler: ^11.2.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
-  melos: ^3.0.1
-  pigeon: ^10.0.0
+  flutter_lints: ^3.0.1
+  melos: ^4.0.0
+  pigeon: ^16.0.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
