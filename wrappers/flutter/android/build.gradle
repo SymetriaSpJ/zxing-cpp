@@ -66,8 +66,6 @@ android {
         disable 'UnsafeExperimentalUsageError'
     }
 
-    namespace 'com.zxingcpp'
-
     buildTypes {
         release {
             minifyEnabled false
