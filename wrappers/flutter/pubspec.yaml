@@ -15,7 +15,7 @@ dependencies:
   mobile_scanner:
     git:
       url: https://github.com/SymetriaSpJ/ios_mobile_scanner.git
-      ref: 3.5.1
+      branch: FIT-23211
   permission_handler: ^11.2.0
 
 dev_dependencies:
