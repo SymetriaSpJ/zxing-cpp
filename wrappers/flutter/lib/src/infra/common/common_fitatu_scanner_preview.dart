@@ -27,9 +27,9 @@ class CommonFitatuScannerPreview extends StatefulWidget {
   State<CommonFitatuScannerPreview> createState() => _CommonFitatuScannerPreviewState();
 }
 
-class _CommonFitatuScannerPreviewState extends State<CommonFitatuScannerPreview> with ScannerPreviewMixin, WidgetsBindingObserver {
+class _CommonFitatuScannerPreviewState extends State<CommonFitatuScannerPreview>
+    with ScannerPreviewMixin, WidgetsBindingObserver {
   late MobileScannerController controller;
-  MobileScannerArguments? mobileScannerArguments;
   bool isStarted = false;
   bool resumeFromBackground = false;
   int startRetryCount = 0;
@@ -38,7 +38,6 @@ class _CommonFitatuScannerPreviewState extends State<CommonFitatuScannerPreview>
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     controller = MobileScannerController(autoStart: false);
-    controller.torchState.addListener(torchChangeListener);
     startScanner();
     super.initState();
   }
@@ -53,9 +52,6 @@ class _CommonFitatuScannerPreviewState extends State<CommonFitatuScannerPreview>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // App state changed before the controller was initialized.
-    if (controller.isStarting) {
-      return;
-    }
 
     switch (state) {
       case AppLifecycleState.resumed:
@@ -72,12 +68,13 @@ class _CommonFitatuScannerPreviewState extends State<CommonFitatuScannerPreview>
         break;
       case AppLifecycleState.detached:
         break;
+      case AppLifecycleState.hidden:
+        break;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final arguments = mobileScannerArguments;
     return LayoutBuilder(builder: (context, constraints) {
       final scanWindowSize = constraints.maxHeight * widget.options.cropPercent;
       final scanWindow = Rect.fromCenter(
@@ -101,19 +98,18 @@ class _CommonFitatuScannerPreviewState extends State<CommonFitatuScannerPreview>
               }
             },
           ),
-          if (arguments != null)
-            Builder(
-              builder: (context) {
-                final metrix = CameraPreviewMetrix(
-                  cropRect: scanWindow,
-                  width: constraints.maxWidth,
-                  height: constraints.maxHeight,
-                  rotationDegrees: 90,
-                );
+          Builder(
+            builder: (context) {
+              final metrix = CameraPreviewMetrix(
+                cropRect: scanWindow,
+                width: constraints.maxWidth,
+                height: constraints.maxHeight,
+                rotationDegrees: 90,
+              );
 
-                return widget.overlayBuilder?.call(context, metrix) ?? PreviewOverlay(cameraPreviewMetrix: metrix);
-              },
-            ),
+              return widget.overlayBuilder?.call(context, metrix) ?? PreviewOverlay(cameraPreviewMetrix: metrix);
+            },
+          ),
         ],
       );
     });
@@ -126,21 +122,18 @@ class _CommonFitatuScannerPreviewState extends State<CommonFitatuScannerPreview>
     } on Exception catch (e) {
       setException(e);
     } finally {
+      torchChangeListener();
       safeSetState();
     }
   }
 
   @override
-  bool isTorchEnabled() => controller.torchState.value == TorchState.on;
+  bool isTorchEnabled() => controller.torchEnabled;
 
   Future<void> startScanner() async {
-    if (isStarted || controller.isStarting) {
-      return;
-    }
-
     try {
       isStarted = true;
-      mobileScannerArguments = await controller.start();
+      await controller.start();
       await controller.resetZoomScale();
       setException(null);
       startRetryCount = 0;
@@ -172,7 +165,6 @@ class _CommonFitatuScannerPreviewState extends State<CommonFitatuScannerPreview>
   void disposeScanner() {
     try {
       isStarted = false;
-      controller.torchState.removeListener(torchChangeListener);
       controller.dispose();
     } on Exception catch (e) {
       setException(e);
