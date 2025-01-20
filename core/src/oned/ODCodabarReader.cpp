@@ -7,8 +7,8 @@
 
 #include "ODCodabarReader.h"
 
-#include "DecodeHints.h"
-#include "Result.h"
+#include "ReaderOptions.h"
+#include "Barcode.h"
 #include "ZXAlgorithms.h"
 
 #include <string>
@@ -45,8 +45,7 @@ bool IsLeftGuard(const PatternView& view, int spaceInPixel)
 		   Contains({0x1A, 0x29, 0x0B, 0x0E}, RowReader::NarrowWideBitPattern(view));
 }
 
-Result
-CodabarReader::decodePattern(int rowNumber, PatternView& next, std::unique_ptr<DecodingState>&) const
+Barcode CodabarReader::decodePattern(int rowNumber, PatternView& next, std::unique_ptr<DecodingState>&) const
 {
 	// minimal number of characters that must be present (including start, stop and checksum characters)
 	// absolute minimum would be 2 (meaning 0 'content'). everything below 4 produces too many false
@@ -84,7 +83,7 @@ CodabarReader::decodePattern(int rowNumber, PatternView& next, std::unique_ptr<D
 		return {};
 
 	// remove stop/start characters
-	if (!_hints.returnCodabarStartEnd())
+	if (!_opts.returnCodabarStartEnd())
 		txt = txt.substr(1, txt.size() - 2);
 
 	// symbology identifier ISO/IEC 15424:2008 4.4.9
@@ -92,7 +91,7 @@ CodabarReader::decodePattern(int rowNumber, PatternView& next, std::unique_ptr<D
 	SymbologyIdentifier symbologyIdentifier = {'F', '0'};
 
 	int xStop = next.pixelsTillEnd();
-	return Result(txt, rowNumber, xStart, xStop, BarcodeFormat::Codabar, symbologyIdentifier);
+	return Barcode(txt, rowNumber, xStart, xStop, BarcodeFormat::Codabar, symbologyIdentifier);
 }
 
 } // namespace ZXing::OneD

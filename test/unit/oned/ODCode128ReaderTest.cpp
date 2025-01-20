@@ -5,8 +5,8 @@
 
 #include "oned/ODCode128Reader.h"
 
-#include "DecodeHints.h"
-#include "Result.h"
+#include "ReaderOptions.h"
+#include "Barcode.h"
 
 #include "gtest/gtest.h"
 
@@ -14,7 +14,7 @@ using namespace ZXing;
 using namespace ZXing::OneD;
 
 // Helper to call decodePattern()
-static Result parse(const int startPattern, PatternRow row)
+static Barcode parse(const int startPattern, PatternRow row)
 {
 	if (startPattern == 'A') {
 		row.insert(row.begin(), { 0, 2, 1, 1, 4, 1, 2 });
@@ -26,8 +26,8 @@ static Result parse(const int startPattern, PatternRow row)
 	row.insert(row.end(), { 2, 3, 3, 1, 1, 1, 2, 0 }); // Stop pattern
 
 	std::unique_ptr<Code128Reader::DecodingState> state;
-	DecodeHints hints;
-	Code128Reader reader(hints);
+	ReaderOptions opts;
+	Code128Reader reader(opts);
 	PatternView next(row);
 	return reader.decodePattern(0, next, state);
 }

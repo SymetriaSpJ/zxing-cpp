@@ -32,8 +32,12 @@ ZXing::BarcodeFormat BarcodeFormatFromZXIFormat(ZXIFormat format) {
             return ZXing::BarcodeFormat::DataMatrix;
         case ZXIFormat::DATA_BAR_EXPANDED:
             return ZXing::BarcodeFormat::DataBarExpanded;
+        case ZXIFormat::DATA_BAR_LIMITED:
+            return ZXing::BarcodeFormat::DataBarLimited;
         case ZXIFormat::DATA_BAR:
             return ZXing::BarcodeFormat::DataBar;
+        case ZXIFormat::DX_FILM_EDGE:
+            return ZXing::BarcodeFormat::DXFilmEdge;
         case ZXIFormat::CODE_128:
             return ZXing::BarcodeFormat::Code128;
         case ZXIFormat::CODE_93:
@@ -46,6 +50,8 @@ ZXing::BarcodeFormat BarcodeFormatFromZXIFormat(ZXIFormat format) {
             return ZXing::BarcodeFormat::Aztec;
         case ZXIFormat::MICRO_QR_CODE:
             return ZXing::BarcodeFormat::MicroQRCode;
+        case ZXIFormat::RMQR_CODE:
+            return ZXing::BarcodeFormat::RMQRCode;
         case ZXIFormat::NONE:
             return ZXing::BarcodeFormat::None;
     }
@@ -71,8 +77,12 @@ ZXIFormat ZXIFormatFromBarcodeFormat(ZXing::BarcodeFormat format) {
             return ZXIFormat::DATA_BAR;
         case ZXing::BarcodeFormat::DataBarExpanded:
             return ZXIFormat::DATA_BAR_EXPANDED;
+        case ZXing::BarcodeFormat::DataBarLimited:
+            return ZXIFormat::DATA_BAR_LIMITED;
         case ZXing::BarcodeFormat::DataMatrix:
             return ZXIFormat::DATA_MATRIX;
+        case ZXing::BarcodeFormat::DXFilmEdge:
+            return ZXIFormat::DX_FILM_EDGE;
         case ZXing::BarcodeFormat::EAN8:
             return ZXIFormat::EAN_8;
         case ZXing::BarcodeFormat::EAN13:
@@ -95,6 +105,8 @@ ZXIFormat ZXIFormatFromBarcodeFormat(ZXing::BarcodeFormat format) {
             return ZXIFormat::MATRIX_CODES;
         case ZXing::BarcodeFormat::MicroQRCode:
             return ZXIFormat::MICRO_QR_CODE;
+        case ZXing::BarcodeFormat::RMQRCode:
+            return ZXIFormat::RMQR_CODE;
         case ZXing::BarcodeFormat::Any:
             return ZXIFormat::ANY;
     }

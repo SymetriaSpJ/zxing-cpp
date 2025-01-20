@@ -25,7 +25,6 @@
 #include <cmath>
 #include <cstdlib>
 #include <map>
-#include <numeric>
 #include <utility>
 #include <vector>
 
@@ -213,8 +212,6 @@ static float CrossProductZ(const ResultPoint& a, const ResultPoint& b, const Res
 /**
 * Orders an array of three ResultPoints in an order [A,B,C] such that AB is less than AC
 * and BC is less than AC, and the angle between BC and BA is less than 180 degrees.
-*
-* @param patterns array of three {@code ResultPoint} to order
 */
 static void OrderByBestPatterns(const ResultPoint*& p0, const ResultPoint*& p1, const ResultPoint*& p2)
 {
@@ -487,12 +484,48 @@ public:
 
 		return lineLength / meanModSize;
 	}
+
+	bool truncateIfLShape()
+	{
+		auto lenThis = Size(_points);
+		auto lineAB = RegressionLine(_points.front(), _points.back());
+		if (lenThis < 16 || lineAB.distance(_points[lenThis / 2]) < 5)
+			return false;
+
+		auto maxP = _points.begin();
+		double maxD = 0.0;
+		for (auto p = _points.begin(); p != _points.end(); ++p) {
+			auto d = lineAB.distance(*p);
+			if (d > maxD) {
+				maxP = p;
+				maxD = d;
+			}
+		}
+
+		auto lenL = distance(_points.front(), *maxP) - 1;
+		auto lenB = distance(*maxP, _points.back()) - 1;
+		if (maxD < std::min(lenL, lenB) / 2)
+			return false;
+
+		setDirectionInward(_points.back() - *maxP);
+
+		_points.resize(std::distance(_points.begin(), maxP) - 1);
+
+		return true;
+	}
 };
 
 class EdgeTracer : public BitMatrixCursorF
 {
 	enum class StepResult { FOUND, OPEN_END, CLOSED_END };
 
+	// force this function inline to allow the compiler optimize for the maxStepSize==1 case in traceLine()
+	// this can result in a 10% speedup of the falsepositive use case when build with c++20
+#if defined(__clang__) || defined(__GNUC__)
+	inline __attribute__((always_inline))
+#elif defined(_MSC_VER)
+	__forceinline
+#endif
 	StepResult traceStep(PointF dEdge, int maxStepSize, bool goodDirection)
 	{
 		dEdge = mainDirection(dEdge);
@@ -552,21 +585,28 @@ public:
 		return true;
 	}
 
+	bool updateDirectionFromLine(RegressionLine& line)
+	{
+		return line.evaluate(1.5) && updateDirectionFromOrigin(p - line.project(p) + line.points().front());
+	}
+
+	bool updateDirectionFromLineCentroid(RegressionLine& line)
+	{
+		// Basically a faster, less accurate version of the above without the line evaluation
+		return updateDirectionFromOrigin(line.centroid());
+	}
+
 	bool traceLine(PointF dEdge, RegressionLine& line)
 	{
 		line.setDirectionInward(dEdge);
 		do {
 			log(p);
 			line.add(p);
-			if (line.points().size() % 50 == 10) {
-				if (!line.evaluate())
-					return false;
-				if (!updateDirectionFromOrigin(p - line.project(p) + line.points().front()))
-					return false;
-			}
+			if (line.points().size() % 50 == 10 && !updateDirectionFromLineCentroid(line))
+				return false;
 			auto stepResult = traceStep(dEdge, 1, line.isValid());
 			if (stepResult != StepResult::FOUND)
-				return stepResult == StepResult::OPEN_END && line.points().size() > 1;
+				return stepResult == StepResult::OPEN_END && line.points().size() > 1 && updateDirectionFromLineCentroid(line);
 		} while (true);
 	}
 
@@ -618,9 +658,7 @@ public:
 				if (stepLengthInMainDir > 1 || maxAbsComponent(curStep) >= 2) {
 					++gaps;
 					if (gaps >= 2 || line.points().size() > 5) {
-						if (!line.evaluate(1.5))
-							return false;
-						if (!updateDirectionFromOrigin(p - line.project(p) + line.points().front()))
+						if (!updateDirectionFromLine(line))
 							return false;
 						// check if the first half of the top-line trace is complete.
 						// the minimum code size is 10x10 -> every code has at least 4 gaps
@@ -701,6 +739,7 @@ static DetectorResult Scan(EdgeTracer& startTracer, std::array<DMRegressionLine,
 #endif
 
 		auto t = startTracer;
+		PointF up, right;
 
 		// follow left leg upwards
 		t.turnRight();
@@ -715,17 +754,19 @@ static DetectorResult Scan(EdgeTracer& startTracer, std::array<DMRegressionLine,
 		t.state = 1;
 		t.setDirection(tlTracer.right());
 		CHECK(t.traceLine(t.left(), lineL));
-		if (!lineL.isValid())
-			t.updateDirectionFromOrigin(tl);
-		auto up = t.back();
+
+		// check if lineL is L-shaped -> truncate the lower leg and set t to just before the corner
+		if (lineL.truncateIfLShape())
+			t.p = lineL.points().back();
+		t.updateDirectionFromOrigin(tl);
+		up = t.back();
 		CHECK(t.traceCorner(t.left(), bl));
 
 		// follow bottom leg right
 		t.state = 2;
 		CHECK(t.traceLine(t.left(), lineB));
-		if (!lineB.isValid())
-			t.updateDirectionFromOrigin(bl);
-		auto right = t.front();
+		t.updateDirectionFromOrigin(bl);
+		right = t.front();
 		CHECK(t.traceCorner(t.left(), br));
 
 		auto lenL = distance(tl, bl) - 1;
@@ -878,7 +919,7 @@ static DetectorResults DetectNew(const BitMatrix& image, bool tryHarder, bool tr
 
 /**
 * This method detects a code in a "pure" image -- that is, pure monochrome image
-* which contains only an unrotated, unskewed, image of a code, with some white border
+* which contains only an unrotated, unskewed, image of a code, with some optional white border
 * around it. This is a specialized method that works exceptionally fast in this special
 * case.
 */
@@ -912,36 +953,33 @@ static DetectorResult DetectPure(const BitMatrix& image)
 	int bottom = top + height - 1;
 
 	// Now just read off the bits (this is a crop + subsample)
-	return {Deflate(image, dimT, dimR, top + modSizeX / 2, left + modSizeY / 2, modSize),
+	return {Deflate(image, dimT, dimR, top + modSizeY / 2, left + modSizeX / 2, modSize),
 			{{left, top}, {right, top}, {right, bottom}, {left, bottom}}};
 }
 
 DetectorResults Detect(const BitMatrix& image, bool tryHarder, bool tryRotate, bool isPure)
 {
 #ifdef __cpp_impl_coroutine
-	if (isPure) {
-		co_yield DetectPure(image);
-	} else {
+	// First try the very fast DetectPure() path. Also because DetectNew() generally fails with pure module size 1 symbols
+	// TODO: implement a tryRotate version of DetectPure, see #590.
+	if (auto r = DetectPure(image); r.isValid())
+		co_yield std::move(r);
+	else if (!isPure) { // If r.isValid() then there is no point in looking for more (no-pure) symbols
 		bool found = false;
 		for (auto&& r : DetectNew(image, tryHarder, tryRotate)) {
 			found = true;
 			co_yield std::move(r);
 		}
 		if (!found && tryHarder) {
-			if (auto r = DetectPure(image); r.isValid())
-				co_yield std::move(r);
-			else if(auto r = DetectOld(image); r.isValid())
+			if (auto r = DetectOld(image); r.isValid())
 				co_yield std::move(r);
 		}
 	}
 #else
-	if (isPure)
-		return DetectPure(image);
-
-	auto result = DetectNew(image, tryHarder, tryRotate);
-	if (!result.isValid() && tryHarder)
-		result = DetectPure(image);
-	if (!result.isValid() && tryHarder)
+	auto result = DetectPure(image);
+	if (!result.isValid() && !isPure)
+		result = DetectNew(image, tryHarder, tryRotate);
+	if (!result.isValid() && tryHarder && !isPure)
 		result = DetectOld(image);
 	return result;
 #endif
