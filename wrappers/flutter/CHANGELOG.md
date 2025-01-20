@@ -13,3 +13,7 @@
  * Ignore debounce properties
  * Fix not working torch on mobile_scanner lib
  * Catch exceptions and pass to error callbacks
+
+## 3.1.0
+ * Update dependencies to the highest version compatible with Flutter 3.27.1
+ * Pull changes from the main repository

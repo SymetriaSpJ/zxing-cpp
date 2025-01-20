@@ -10,17 +10,17 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  plugin_platform_interface: ^2.0.2
+  plugin_platform_interface: ^2.1.8
   # support iOS
-  mobile_scanner: ^6.0.2
-  permission_handler: ^11.2.0
+  mobile_scanner: ^6.0.3
+  permission_handler: ^11.3.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.1
-  melos: ^4.0.0
-  pigeon: ^16.0.4
+  flutter_lints: ^5.0.0
+  melos: ^6.3.2
+  pigeon: ^22.7.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
