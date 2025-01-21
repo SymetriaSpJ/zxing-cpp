@@ -16,4 +16,4 @@
 
 ## 3.1.0
  * Update dependencies to the highest version compatible with Flutter 3.27.1
- * Pull changes from the main repository
+ * Pull changes form origin repository [zxing-cpp](https://github.com/zxing-cpp/zxing-cpp) from tag v2.3.0
