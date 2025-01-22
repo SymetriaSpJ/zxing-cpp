@@ -15,5 +15,6 @@
  * Catch exceptions and pass to error callbacks
 
 ## 3.1.0
- * Update dependencies to the highest version compatible with Flutter 3.27.1
+ * Update dependencies to the highest version compatible with Flutter 3.27.3
  * Pull changes form origin repository [zxing-cpp](https://github.com/zxing-cpp/zxing-cpp) from tag v2.3.0
+ * Update AGP to 8.2.2
