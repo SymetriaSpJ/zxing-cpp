@@ -32,7 +32,11 @@ namespace {
 	}
 
 	std::string StripSpaces(std::string str) {
+#ifdef __cpp_lib_erase_if
+		std::erase_if(str, isspace);
+#else
 		str.erase(std::remove_if(str.begin(), str.end(), isspace), str.end());
+#endif
 		return str;
 	}
 
@@ -199,4 +203,53 @@ TEST(AZEncoderTest, BorderCompact4Case)
 	aztec = Aztec::Encoder::Encode(alphabet4.substr(0, 100), 10, Aztec::Encoder::DEFAULT_AZTEC_LAYERS);
 	EXPECT_TRUE(aztec.compact);
 	EXPECT_EQ(aztec.layers, 4);
+}
+
+
+TEST(AZEncoderTest, Rune)
+{
+	{
+		Aztec::EncodeResult aztec = Aztec::Encoder::Encode("\x19", 0, Aztec::Encoder::AZTEC_RUNE_LAYERS);
+		
+		EXPECT_EQ(aztec.layers, 0);
+		EXPECT_EQ(aztec.matrix, ParseBitMatrix(
+			"X X X   X X     X   X \n"
+			"X X X X X X X X X X X \n"
+			"  X               X X \n"
+			"  X   X X X X X   X X \n"
+			"  X   X       X   X   \n"
+			"X X   X   X   X   X X \n"
+			"X X   X       X   X X \n"
+			"X X   X X X X X   X   \n"
+			"X X               X X \n"
+			"  X X X X X X X X X X \n"
+			"    X     X           \n"
+		));
+	}
+	{
+		Aztec::EncodeResult aztec = Aztec::Encoder::Encode("\xFF", 0, Aztec::Encoder::AZTEC_RUNE_LAYERS);
+		
+		EXPECT_EQ(aztec.layers, 0);
+		EXPECT_EQ(aztec.matrix, ParseBitMatrix(
+			"X X   X   X   X     X \n"
+			"X X X X X X X X X X X \n"
+			"  X               X X \n"
+			"X X   X X X X X   X X \n"
+			"X X   X       X   X X \n"
+			"  X   X   X   X   X X \n"
+			"  X   X       X   X   \n"
+			"X X   X X X X X   X X \n"
+			"X X               X   \n"
+			"  X X X X X X X X X X \n"
+			"    X X     X X X     \n"
+		));
+	}
+	{
+		Aztec::EncodeResult aztec = Aztec::Encoder::Encode("\x44", 0, Aztec::Encoder::AZTEC_RUNE_LAYERS);
+
+		std::cout << ToString(aztec.matrix, 'X', ' ', true);
+	}
+
+	
+	
 }

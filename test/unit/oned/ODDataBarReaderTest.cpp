@@ -5,8 +5,8 @@
 
 #include "oned/ODDataBarReader.h"
 
-#include "DecodeHints.h"
-#include "Result.h"
+#include "ReaderOptions.h"
+#include "Barcode.h"
 
 #include "gtest/gtest.h"
 
@@ -14,9 +14,9 @@ using namespace ZXing;
 using namespace ZXing::OneD;
 
 // Helper to call decodePattern()
-static Result parse(PatternRow row, DecodeHints hints = {})
+static Barcode parse(PatternRow row, ReaderOptions opts = {})
 {
-	DataBarReader reader(hints);
+	DataBarReader reader(opts);
 
 	row.insert(row.begin(), { 1, 1 }); // Left guard
 	row.insert(row.end(), { 1, 1 }); // Right guard
@@ -31,7 +31,7 @@ TEST(ODDataBarReaderTest, Composite)
 	{
 		// With 2D linkage flag (GS1 Composite) in checksum
 		PatternRow row = { 2, 3, 1, 2, 1, 2, 4, 1, 3, 3, 7, 1, 1, 3, 1, 2, 1, 1, 1, 4, 2, 4, 1, 1, 2, 3, 1, 1, 2, 1, 1, 2, 8, 3, 3, 2, 2, 1, 4, 1, 1, 2 };
-		Result result = parse(row);
+		auto result = parse(row);
 		EXPECT_TRUE(result.isValid());
 		EXPECT_EQ(result.text(), "01234567890128");
 	}

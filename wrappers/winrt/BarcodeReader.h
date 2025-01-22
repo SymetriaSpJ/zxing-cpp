@@ -6,6 +6,7 @@
 #pragma once
 
 #include "BarcodeFormat.h"
+#include "ReaderOptions.h"
 
 #include <memory>
 
@@ -18,6 +19,7 @@ public enum class BarcodeType : int {
 	CODE_93,
 	CODE_128,
 	DATA_MATRIX,
+	DX_FILM_EDGE,
 	EAN_8,
 	EAN_13,
 	ITF,
@@ -25,13 +27,14 @@ public enum class BarcodeType : int {
 	PDF_417,
 	QR_CODE,
 	MICRO_QR_CODE,
+	RMQR_CODE,
 	RSS_14,
 	RSS_EXPANDED,
+	DATA_BAR_LIMITED,
 	UPC_A,
 	UPC_E
 };
 
-class DecodeHints;
 ref class ReadResult;
 
 public ref class BarcodeReader sealed
@@ -51,7 +54,7 @@ private:
 	static BarcodeFormat ConvertRuntimeToNative(BarcodeType type);
 	static BarcodeType ConvertNativeToRuntime(BarcodeFormat format);
 
-	std::unique_ptr<DecodeHints> m_hints;
+	std::unique_ptr<ReaderOptions> m_opts;
 };
 
 } // ZXing

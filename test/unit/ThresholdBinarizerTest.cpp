@@ -44,7 +44,7 @@ TEST(ThresholdBinarizerTest, PatternRowClear)
 {
 	std::string bitstream;
 	BitMatrix bits;
-	DecodeHints hints;
+	ReaderOptions opts;
 	std::vector<uint8_t> buf;
 
 	// Test that ThresholdBinarizer::getPatternRow() clears row first (same as GlobalHistogramBinarizer)
@@ -94,11 +94,11 @@ TEST(ThresholdBinarizerTest, PatternRowClear)
 				"01000111000101111010011000000000101011110100111000010";
 
 	bits = ParseBitMatrix(bitstream, 53 /*width*/);
-	hints.setFormats(BarcodeFormat::DataBarExpanded);
-	hints.setMinLineCount(1);
-	OneD::Reader reader(hints);
+	opts.setFormats(BarcodeFormat::DataBarExpanded);
+	opts.setMinLineCount(1);
+	OneD::Reader reader(opts);
 
-	Result result = reader.decode(ThresholdBinarizer(getImageView(buf, bits), 0x7F));
-	EXPECT_TRUE(result.isValid());
-	EXPECT_EQ(result.text(TextMode::HRI), "(91)12345678901234567890123456789012345678901234567890123456789012345678");
+	auto barcode = reader.decode(ThresholdBinarizer(getImageView(buf, bits), 0x7F));
+	EXPECT_TRUE(barcode.isValid());
+	EXPECT_EQ(barcode.text(TextMode::HRI), "(91)12345678901234567890123456789012345678901234567890123456789012345678");
 }

@@ -11,7 +11,7 @@
 #include "BarcodeReader.h"
 
 #include "BarcodeFormat.h"
-#include "DecodeHints.h"
+#include "ReaderOptions.h"
 #include "ReadBarcode.h"
 #include "ReadResult.h"
 #include "Utf.h"
@@ -45,17 +45,17 @@ BarcodeReader::BarcodeReader(bool tryHarder)
 void
 BarcodeReader::init(bool tryHarder, bool tryRotate, const Platform::Array<BarcodeType>^ types)
 {
-	m_hints.reset(new DecodeHints());
-	m_hints->setTryHarder(tryHarder);
-	m_hints->setTryRotate(tryRotate);
-	m_hints->setTryInvert(tryHarder);
+	m_opts.reset(new ReaderOptions());
+	m_opts->setTryHarder(tryHarder);
+	m_opts->setTryRotate(tryRotate);
+	m_opts->setTryInvert(tryHarder);
 
 	if (types != nullptr && types->Length > 0) {
 		BarcodeFormats barcodeFormats;
 		for (BarcodeType type : types) {
 			barcodeFormats |= BarcodeReader::ConvertRuntimeToNative(type);
 		}
-		m_hints->setFormats(barcodeFormats);
+		m_opts->setFormats(barcodeFormats);
 	}
 }
 
@@ -92,10 +92,16 @@ BarcodeFormat BarcodeReader::ConvertRuntimeToNative(BarcodeType type)
 		return BarcodeFormat::QRCode;
 	case BarcodeType::MICRO_QR_CODE:
 		return BarcodeFormat::MicroQRCode;
+	case BarcodeType::RMQR_CODE:
+		return BarcodeFormat::RMQRCode;
 	case BarcodeType::RSS_14:
 		return BarcodeFormat::DataBar;
 	case BarcodeType::RSS_EXPANDED:
 		return BarcodeFormat::DataBarExpanded;
+	case BarcodeType::DATA_BAR_LIMITED:
+		return BarcodeFormat::DataBarLimited;
+	case BarcodeType::DX_FILM_EDGE:
+		return BarcodeFormat::DXFilmEdge;
 	case BarcodeType::UPC_A:
 		return BarcodeFormat::UPCA;
 	case BarcodeType::UPC_E:
@@ -135,10 +141,16 @@ BarcodeType BarcodeReader::ConvertNativeToRuntime(BarcodeFormat format)
 		return BarcodeType::QR_CODE;
 	case BarcodeFormat::MicroQRCode:
 		return BarcodeType::MICRO_QR_CODE;
+	case BarcodeFormat::RMQRCode:
+		return BarcodeType::RMQR_CODE;
 	case BarcodeFormat::DataBar:
 		return BarcodeType::RSS_14;
 	case BarcodeFormat::DataBarExpanded:
 		return BarcodeType::RSS_EXPANDED;
+	case BarcodeFormat::DataBarLimited:
+		return BarcodeType::DATA_BAR_LIMITED;
+	case BarcodeFormat::DXFilmEdge:
+		return BarcodeType::DX_FILM_EDGE;
 	case BarcodeFormat::UPCA:
 		return BarcodeType::UPC_A;
 	case BarcodeFormat::UPCE:
@@ -176,8 +188,8 @@ BarcodeReader::Read(SoftwareBitmap^ bitmap, int cropWidth, int cropHeight)
 			switch (bitmap->BitmapPixelFormat)
 			{
 			case BitmapPixelFormat::Gray8: fmt = ImageFormat::Lum; break;
-			case BitmapPixelFormat::Bgra8: fmt = ImageFormat::BGRX; break;
-			case BitmapPixelFormat::Rgba8: fmt = ImageFormat::RGBX; break;
+			case BitmapPixelFormat::Bgra8: fmt = ImageFormat::BGRA; break;
+			case BitmapPixelFormat::Rgba8: fmt = ImageFormat::RGBA; break;
 			default:
 				throw std::runtime_error("Unsupported BitmapPixelFormat");
 			}
@@ -185,9 +197,9 @@ BarcodeReader::Read(SoftwareBitmap^ bitmap, int cropWidth, int cropHeight)
 			auto img = ImageView(inBytes, bitmap->PixelWidth, bitmap->PixelHeight, fmt, inBuffer->GetPlaneDescription(0).Stride)
 						   .cropped(cropLeft, cropTop, cropWidth, cropHeight);
 
-			auto result = ReadBarcode(img, *m_hints);
-			if (result.isValid()) {
-				return ref new ReadResult(ToPlatformString(ZXing::ToString(result.format())), ToPlatformString(result.text()), ConvertNativeToRuntime(result.format()));
+			auto barcode = ReadBarcode(img, *m_opts);
+			if (barcode.isValid()) {
+				return ref new ReadResult(ToPlatformString(ZXing::ToString(barcode.format())), ToPlatformString(barcode.text()), ConvertNativeToRuntime(barcode.format()));
 			}
 		} else {
 			throw std::runtime_error("Failed to read bitmap's data");

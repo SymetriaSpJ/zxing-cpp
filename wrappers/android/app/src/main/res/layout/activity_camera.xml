@@ -13,7 +13,7 @@
         android:layout_height="match_parent"
         app:scaleType="fitCenter" />
 
-    <com.example.zxingcppdemo.PreviewOverlay
+    <zxingcpp.app.PreviewOverlay
         android:id="@+id/overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
@@ -101,6 +101,11 @@
             android:id="@+id/tryDownscale"
             style="@style/ChipR"
             android:text="tryDownscale" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/multiSymbol"
+            style="@style/ChipR"
+            android:text="multiSymbol" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/crop"
