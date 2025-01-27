@@ -12,7 +12,6 @@ pluginManagement {
     repositories {
         google()
         mavenCentral()
-        maven { url "https://mobilesdk.useinsider.com/android" }
         gradlePluginPortal()
     }
 }
