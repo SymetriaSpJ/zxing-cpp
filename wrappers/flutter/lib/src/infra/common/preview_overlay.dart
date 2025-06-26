@@ -3,9 +3,14 @@ import 'package:flutter/widgets.dart';
 import 'dart:math';
 
 class PreviewOverlay extends StatefulWidget {
-  const PreviewOverlay({super.key, required this.cameraPreviewMetrix});
+  const PreviewOverlay({
+    super.key,
+    required this.cameraPreviewMetrix,
+    this.theme,
+  });
 
   final CameraPreviewMetrix cameraPreviewMetrix;
+  final PreviewOverlayThemeData? theme;
 
   @override
   State<PreviewOverlay> createState() => _PreviewOverlayState();
@@ -31,13 +36,15 @@ class _PreviewOverlayState extends State<PreviewOverlay> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
+    final currentTheme = widget.theme ?? PreviewOverlayTheme.of(context);
+
     return AnimatedBuilder(
       animation: animationController,
       builder: (context, child) {
         return CustomPaint(
           painter: _PreviewOverlayPainer(
             metrix: widget.cameraPreviewMetrix,
-            theme: PreviewOverlayTheme.of(context),
+            theme: currentTheme,
             animation: animationController.value,
           ),
         );
@@ -51,6 +58,8 @@ class _PreviewOverlayPainer extends CustomPainter {
   final PreviewOverlayThemeData theme;
   final Paint overlayPaint;
   final Paint laserPaint;
+  final Paint cropRectBorderPaint;
+
   final double animation;
 
   _PreviewOverlayPainer({
@@ -60,18 +69,28 @@ class _PreviewOverlayPainer extends CustomPainter {
   })  : overlayPaint = Paint()..color = theme.overlayColor,
         laserPaint = Paint()
           ..style = PaintingStyle.stroke
-          ..color = theme.laserLineColor.withOpacity(animation)
-          ..strokeWidth = theme.laserLineThickness;
+          ..color = theme.laserLineColor.withValues(alpha: animation)
+          ..strokeWidth = theme.laserLineThickness,
+        cropRectBorderPaint = Paint()
+          ..style = PaintingStyle.stroke
+          ..color = theme.cropRectBorderColor
+          ..strokeWidth = theme.cropRectBorderThickness;
 
   @override
   void paint(Canvas canvas, Size size) {
     final scale = (min(size.width, size.height) / metrix.height);
     final offset = (max(size.width, size.height) - (metrix.width * scale).toInt()) / 2;
+
     final cropRect = Rect.fromLTRB(
       metrix.cropRect.left.toDouble(),
       metrix.cropRect.top.toDouble(),
       metrix.cropRect.right.toDouble(),
       metrix.cropRect.bottom.toDouble(),
+    );
+
+    final RRect roundedCropRect = RRect.fromRectAndRadius(
+      cropRect,
+      Radius.circular(theme.cropRectBorderRadius),
     );
 
     canvas.save();
@@ -93,10 +112,14 @@ class _PreviewOverlayPainer extends CustomPainter {
               height: size.width / scale,
             ),
           ),
-        Path()..addRect(cropRect),
+        Path()..addRRect(roundedCropRect),
       ),
       overlayPaint,
     );
+
+    if (theme.showCropRectBorder) {
+      canvas.drawRRect(roundedCropRect, cropRectBorderPaint);
+    }
 
     if (theme.showLaserLine && !metrix.cropRect.isEmpty) {
       canvas.drawLine(cropRect.bottomCenter, cropRect.topCenter, laserPaint);

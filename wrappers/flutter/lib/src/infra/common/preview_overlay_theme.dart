@@ -28,6 +28,10 @@ class PreviewOverlayThemeData {
   final double laserLineThickness;
   final bool showLaserLine;
   final List<DeviceOrientation> supportedOrientations;
+  final Color cropRectBorderColor;
+  final double cropRectBorderThickness;
+  final double cropRectBorderRadius;
+  final bool showCropRectBorder;
 
   const PreviewOverlayThemeData({
     this.overlayColor = const Color(0x80000000),
@@ -35,6 +39,10 @@ class PreviewOverlayThemeData {
     this.laserLineThickness = 1.0,
     this.showLaserLine = true,
     this.supportedOrientations = DeviceOrientation.values,
+    this.cropRectBorderColor = const Color(0xFFFFFFFF),
+    this.cropRectBorderThickness = 2.0,
+    this.cropRectBorderRadius = 0.0,
+    this.showCropRectBorder = false,
   });
 
   @override
@@ -44,6 +52,10 @@ class PreviewOverlayThemeData {
         laserLineThickness,
         showLaserLine,
         supportedOrientations,
+        cropRectBorderColor,
+        cropRectBorderThickness,
+        cropRectBorderRadius,
+        showCropRectBorder,
       );
 
   @override

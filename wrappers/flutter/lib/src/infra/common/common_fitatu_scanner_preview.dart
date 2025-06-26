@@ -1,5 +1,4 @@
 import 'package:fitatu_barcode_scanner/fitatu_barcode_scanner.dart';
-import 'package:fitatu_barcode_scanner/src/infra/common/preview_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -27,8 +26,7 @@ class CommonFitatuScannerPreview extends StatefulWidget {
   State<CommonFitatuScannerPreview> createState() => _CommonFitatuScannerPreviewState();
 }
 
-class _CommonFitatuScannerPreviewState extends State<CommonFitatuScannerPreview>
-    with ScannerPreviewMixin, WidgetsBindingObserver {
+class _CommonFitatuScannerPreviewState extends State<CommonFitatuScannerPreview> with ScannerPreviewMixin, WidgetsBindingObserver {
   late MobileScannerController controller;
   bool isStarted = false;
   bool resumeFromBackground = false;
