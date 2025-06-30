@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:fitatu_barcode_scanner/fitatu_barcode_scanner.dart';
@@ -43,14 +42,12 @@ class FitatuBarcodeScannerPreviewState extends State<FitatuBarcodeScannerPreview
 
   @override
   void initState() {
-    unawaited(SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]));
     super.initState();
-  }
 
-  @override
-  void dispose() {
-    unawaited(SystemChrome.setPreferredOrientations(widget.theme.supportedOrientations));
-    super.dispose();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
   }
 
   @override

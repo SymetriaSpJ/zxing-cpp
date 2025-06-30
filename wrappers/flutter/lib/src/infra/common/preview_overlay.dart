@@ -42,7 +42,7 @@ class _PreviewOverlayState extends State<PreviewOverlay> with SingleTickerProvid
       animation: animationController,
       builder: (context, child) {
         return CustomPaint(
-          painter: _PreviewOverlayPainer(
+          painter: _PreviewOverlayPainter(
             metrix: widget.cameraPreviewMetrix,
             theme: currentTheme,
             animation: animationController.value,
@@ -53,7 +53,7 @@ class _PreviewOverlayState extends State<PreviewOverlay> with SingleTickerProvid
   }
 }
 
-class _PreviewOverlayPainer extends CustomPainter {
+class _PreviewOverlayPainter extends CustomPainter {
   final CameraPreviewMetrix metrix;
   final PreviewOverlayThemeData theme;
   final Paint overlayPaint;
@@ -62,7 +62,7 @@ class _PreviewOverlayPainer extends CustomPainter {
 
   final double animation;
 
-  _PreviewOverlayPainer({
+  _PreviewOverlayPainter({
     required this.metrix,
     required this.theme,
     required this.animation,
@@ -107,7 +107,7 @@ class _PreviewOverlayPainer extends CustomPainter {
         Path()
           ..addRect(
             Rect.fromCenter(
-              center: Offset(metrix.width / 2, metrix.height / 2),
+              center: Offset((metrix.width - 1) / 2, metrix.height / 2),
               width: size.height / scale,
               height: size.width / scale,
             ),
@@ -129,7 +129,7 @@ class _PreviewOverlayPainer extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _PreviewOverlayPainer oldDelegate) {
+  bool shouldRepaint(covariant _PreviewOverlayPainter oldDelegate) {
     return oldDelegate.metrix != metrix || oldDelegate.theme != theme || animation != oldDelegate.animation;
   }
 
