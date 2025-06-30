@@ -1,4 +1,3 @@
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 class PreviewOverlayTheme extends InheritedWidget {
@@ -27,7 +26,6 @@ class PreviewOverlayThemeData {
   final Color laserLineColor;
   final double laserLineThickness;
   final bool showLaserLine;
-  final List<DeviceOrientation> supportedOrientations;
   final Color cropRectBorderColor;
   final double cropRectBorderThickness;
   final double cropRectBorderRadius;
@@ -38,7 +36,6 @@ class PreviewOverlayThemeData {
     this.laserLineColor = const Color(0xFFFF3939),
     this.laserLineThickness = 1.0,
     this.showLaserLine = true,
-    this.supportedOrientations = DeviceOrientation.values,
     this.cropRectBorderColor = const Color(0xFFFFFFFF),
     this.cropRectBorderThickness = 2.0,
     this.cropRectBorderRadius = 0.0,
@@ -51,7 +48,6 @@ class PreviewOverlayThemeData {
         laserLineColor,
         laserLineThickness,
         showLaserLine,
-        supportedOrientations,
         cropRectBorderColor,
         cropRectBorderThickness,
         cropRectBorderRadius,
