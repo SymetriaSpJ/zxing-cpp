@@ -43,7 +43,7 @@ PatternView FindPattern(const PatternView& view)
 {
 	return FindLeftGuard<PATTERN.size()>(view, PATTERN.size(), [](const PatternView& view, int spaceInPixel) {
 		// perform a fast plausability test for 1:1:3:1:1 pattern
-		if (view[2] < 2 * std::max(view[0], view[4]) || view[2] < std::max(view[1], view[3]))
+		if (view[2] < 3 || view[2] < 2 * std::max(view[0], view[4]) || view[2] < std::max(view[1], view[3]))
 			return 0.;
 		return IsPattern<E2E>(view, PATTERN, spaceInPixel, 0.1); // the requires 4, here we accept almost 0
 	});
@@ -113,14 +113,16 @@ FinderPatternSets GenerateFinderPatternSets(FinderPatterns& patterns)
 
 	auto sets            = std::multimap<double, FinderPatternSet>();
 	auto squaredDistance = [](const auto* a, const auto* b) {
-		// The scaling of the distance by the b/a size ratio is a very coarse compensation for the shortening effect of
+		// The scaling of the distance based on the b/a size ratio is a very coarse compensation for the shortening effect of
 		// the camera projection on slanted symbols. The fact that the size of the finder pattern is proportional to the
 		// distance from the camera is used here. This approximation only works if a < b < 2*a (see below).
 		// Test image: fix-finderpattern-order.jpg
-		return dot((*a - *b), (*a - *b)) * std::pow(double(b->size) / a->size, 2);
+		// Originally, I scaled the squaredDistance with the (b/a)^2 ratio but that could skew the cosine calculation
+		// below too much, resulting in the acceptance of degenerate triangles (a, b and c on a line).
+		return dot((*a - *b), (*a - *b)) * double(b->size) / a->size;
 	};
-	const double cosUpper = std::cos(45. / 180 * 3.1415); // TODO: use c++20 std::numbers::pi_v
-	const double cosLower = std::cos(135. / 180 * 3.1415);
+	const double cosUpper = std::cos(60. / 180 * 3.1415); // TODO: use c++20 std::numbers::pi_v
+	const double cosLower = std::cos(120. / 180 * 3.1415);
 
 	int nbPatterns = Size(patterns);
 	for (int i = 0; i < nbPatterns - 2; i++) {
@@ -162,7 +164,7 @@ FinderPatternSets GenerateFinderPatternSets(FinderPatterns& patterns)
 					moduleCount < 21 * 0.9 || moduleCount > 177 * 1.5) // moduleCount may be overestimated, see above
 					continue;
 
-				// Make sure the angle between AB and BC does not deviate from 90° by more than 45°
+				// Make sure the angle between AB and BC does not deviate from 90° too much
 				auto cosAB_BC = (distAB2 + distBC2 - distAC2) / (2 * distAB * distBC);
 				if (std::isnan(cosAB_BC) || cosAB_BC > cosUpper || cosAB_BC < cosLower)
 					continue;
@@ -385,7 +387,7 @@ DetectorResult SampleQR(const BitMatrix& image, const FinderPatternSet& fp)
 	}
 
 	// otherwise the simple estimation used by upstream is used as a best guess fallback
-	if (!image.isIn(br)) {
+	if (!image.isIn(br) || !FitSquareToPoints(image, fp.bl, fp.bl.size, 2, false)) {
 		br = fp.tr - fp.tl + fp.bl;
 		brOffset = PointF(0, 0);
 	}
@@ -397,14 +399,16 @@ DetectorResult SampleQR(const BitMatrix& image, const FinderPatternSet& fp)
 		auto version = ReadVersion(image, dimension, mod2Pix);
 
 		// if the version bits are garbage -> discard the detection
-		if (!version || std::abs(version->dimension() - dimension) > 8)
+		if (!version || std::min(std::abs(version->dimension() - top.dim), std::abs(version->dimension() - left.dim)) > 8)
 			return DetectorResult();
 		if (version->dimension() != dimension) {
 			printf("update dimension: %d -> %d\n", dimension, version->dimension());
 			dimension = version->dimension();
 			mod2Pix = Mod2Pix(dimension, brOffset, {fp.tl, fp.tr, br, fp.bl});
 		}
-#if 1
+
+#if 1 // finding and evaluating the alignment patterns to enable a tiled sampling of the symbol
+
 		auto& apM = version->alignmentPatternCenters(); // alignment pattern positions in modules
 		auto apP = Matrix<std::optional<PointF>>(Size(apM), Size(apM)); // found/guessed alignment pattern positions in pixels
 		const int N = Size(apM) - 1;

@@ -7,6 +7,7 @@
 #include "ZXingC.h"
 
 #include "ZXingCpp.h"
+#include "ZXConfig.h"
 
 #if __has_include("Version.h")
 #include "Version.h"
@@ -22,7 +23,7 @@
 
 using namespace ZXing;
 
-static thread_local std::string lastErrorMsg;
+static ZX_THREAD_LOCAL std::string lastErrorMsg;
 static Barcodes emptyBarcodes{}; // used to prevent new heap allocation for each empty result
 
 template<typename R, typename T> R transmute_cast(const T& v) noexcept
@@ -216,6 +217,7 @@ ZX_GETTER(ZXing_ContentType, contentType, static_cast<ZXing_ContentType>)
 ZX_GETTER(char*, text, copy)
 ZX_GETTER(char*, ecLevel, copy)
 ZX_GETTER(char*, symbologyIdentifier, copy)
+ZX_GETTER(char*, sequenceId, copy)
 ZX_GETTER(ZXing_Position, position, transmute_cast<ZXing_Position>)
 
 ZX_GETTER(int, orientation,)
@@ -223,6 +225,8 @@ ZX_GETTER(bool, hasECI,)
 ZX_GETTER(bool, isInverted,)
 ZX_GETTER(bool, isMirrored,)
 ZX_GETTER(int, lineCount,)
+ZX_GETTER(int, sequenceIndex,)
+ZX_GETTER(int, sequenceSize,)
 
 void ZXing_Barcode_delete(ZXing_Barcode* barcode)
 {
@@ -277,6 +281,9 @@ ZX_PROPERTY(bool, tryHarder, TryHarder)
 ZX_PROPERTY(bool, tryRotate, TryRotate)
 ZX_PROPERTY(bool, tryInvert, TryInvert)
 ZX_PROPERTY(bool, tryDownscale, TryDownscale)
+#ifdef ZXING_EXPERIMENTAL_API
+	ZX_PROPERTY(bool, tryDenoise, TryDenoise)
+#endif
 ZX_PROPERTY(bool, isPure, IsPure)
 ZX_PROPERTY(bool, returnErrors, ReturnErrors)
 ZX_PROPERTY(int, minLineCount, MinLineCount)
