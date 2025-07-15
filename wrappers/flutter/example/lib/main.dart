@@ -81,7 +81,7 @@ class _MyAppState extends State<MyApp> {
                     minWidth: 200,
                     minHeight: 20,
                   ),
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withValues(alpha: 0.5),
                   child: Text(
                     code ?? '<no results>',
                     style: const TextStyle(color: Colors.black),
@@ -97,7 +97,7 @@ class _MyAppState extends State<MyApp> {
                     minWidth: 200,
                     minHeight: 20,
                   ),
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withValues(alpha: 0.5),
                   child: Text(
                     error ?? '<no errors>',
                     style: const TextStyle(color: Colors.black),
