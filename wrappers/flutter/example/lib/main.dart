@@ -28,7 +28,7 @@ class _MyAppState extends State<MyApp> {
   bool enableTorch = false;
   bool fullscreen = false;
   double cropPercent = 0.8;
-  String? code;
+  FitatuBarcodeScannerResult? result;
   String? error;
   late final _previewKey = GlobalKey<FitatuBarcodeScannerPreviewState>();
 
@@ -52,14 +52,15 @@ class _MyAppState extends State<MyApp> {
             options: options,
             alwaysUseCommon: alwaysUseCommon,
             onResult: (value) {
+              if (value.code == null) return;
               setState(() {
-                code = value;
+                result = value;
                 error = null;
               });
             },
             onError: (value) {
               setState(() {
-                code = null;
+                result = null;
                 error = value;
               });
             },
@@ -77,15 +78,25 @@ class _MyAppState extends State<MyApp> {
                 alignment: Alignment.topCenter,
                 child: Container(
                   margin: const EdgeInsets.all(16),
-                  constraints: const BoxConstraints(
-                    minWidth: 200,
-                    minHeight: 20,
-                  ),
+                  constraints: const BoxConstraints(minWidth: 200, minHeight: 20),
                   color: Colors.white.withValues(alpha: 0.5),
-                  child: Text(
-                    code ?? '<no results>',
-                    style: const TextStyle(color: Colors.black),
-                    textAlign: TextAlign.center,
+                  child: Column(
+                    children: [
+                      if (result == null)
+                        Text('<no results>')
+                      else if (result case final result?) ...[
+                        Text(
+                          result.code ?? '<no code>',
+                          style: const TextStyle(color: Colors.black),
+                          textAlign: TextAlign.center,
+                        ),
+                        Text(
+                          'format: ${result.format.name}',
+                          style: const TextStyle(color: Colors.black),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ),
@@ -93,10 +104,7 @@ class _MyAppState extends State<MyApp> {
                 alignment: Alignment.topCenter,
                 child: Container(
                   margin: const EdgeInsets.all(16),
-                  constraints: const BoxConstraints(
-                    minWidth: 200,
-                    minHeight: 20,
-                  ),
+                  constraints: const BoxConstraints(minWidth: 200, minHeight: 20),
                   color: Colors.white.withValues(alpha: 0.5),
                   child: Text(
                     error ?? '<no errors>',
@@ -116,9 +124,7 @@ class _MyAppState extends State<MyApp> {
                 });
                 _previewKey.currentState?.setTorchEnabled(isEnabled: enableTorch);
               },
-              icon: Icon(
-                enableTorch ? Icons.flash_off : Icons.flash_on,
-              ),
+              icon: Icon(enableTorch ? Icons.flash_off : Icons.flash_on),
             ),
           ),
           Align(
@@ -137,11 +143,7 @@ class _MyAppState extends State<MyApp> {
     );
 
     return MaterialApp(
-      theme: ThemeData(
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-        ),
-      ),
+      theme: ThemeData(iconTheme: const IconThemeData(color: Colors.white)),
       home: fullscreen
           ? preview
           : DefaultTabController(
@@ -161,10 +163,7 @@ class _MyAppState extends State<MyApp> {
                     if (started)
                       preview
                     else
-                      MaterialButton(
-                        child: const Text('Tap to start'),
-                        onPressed: () => setState(() => started = true),
-                      ),
+                      MaterialButton(child: const Text('Tap to start'), onPressed: () => setState(() => started = true)),
                     SingleChildScrollView(
                       child: Column(
                         children: [
@@ -172,11 +171,7 @@ class _MyAppState extends State<MyApp> {
                             value: alwaysUseCommon,
                             title: const Text('alwaysUseCommon'),
                             onChanged: isAndroid ? (value) => setState(() => alwaysUseCommon = !alwaysUseCommon) : null,
-                            subtitle: !isAndroid
-                                ? const Text(
-                                    'Options is available only on Android device',
-                                  )
-                                : null,
+                            subtitle: !isAndroid ? const Text('Options is available only on Android device') : null,
                           ),
                           SwitchListTile(
                             value: tryHarder,

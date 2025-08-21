@@ -44,15 +44,15 @@ class PreviewOverlayThemeData {
 
   @override
   int get hashCode => Object.hash(
-        overlayColor,
-        laserLineColor,
-        laserLineThickness,
-        showLaserLine,
-        cropRectBorderColor,
-        cropRectBorderThickness,
-        cropRectBorderRadius,
-        showCropRectBorder,
-      );
+    overlayColor,
+    laserLineColor,
+    laserLineThickness,
+    showLaserLine,
+    cropRectBorderColor,
+    cropRectBorderThickness,
+    cropRectBorderRadius,
+    showCropRectBorder,
+  );
 
   @override
   bool operator ==(Object other) => other is PreviewOverlayThemeData && other.hashCode == hashCode;

@@ -26,8 +26,8 @@ class FitatuBarcodeScannerPreview extends StatefulWidget {
   });
 
   final ScannerOptions options;
-  final ValueChanged<String?> onResult;
-  final ScannerErrorCallback? onError;
+  final FitatuBarcodeScannerResultCallback onResult;
+  final FitatuBarcodeScannerErrorCallback? onError;
   final VoidCallback? onChanged;
   final bool alwaysUseCommon;
   final PreviewOverlayBuilder? previewOverlayBuilder;
@@ -44,10 +44,7 @@ class FitatuBarcodeScannerPreviewState extends State<FitatuBarcodeScannerPreview
   void initState() {
     super.initState();
 
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   }
 
   @override
@@ -55,13 +52,13 @@ class FitatuBarcodeScannerPreviewState extends State<FitatuBarcodeScannerPreview
     late Widget preview;
 
     Widget getCommonScanner() => CommonFitatuScannerPreview(
-          key: _key,
-          onResult: widget.onResult,
-          options: widget.options,
-          onChanged: widget.onChanged,
-          onError: widget.onError,
-          overlayBuilder: widget.previewOverlayBuilder,
-        );
+      key: _key,
+      onResult: widget.onResult,
+      options: widget.options,
+      onChanged: widget.onChanged,
+      onError: widget.onError,
+      overlayBuilder: widget.previewOverlayBuilder,
+    );
 
     if (widget.alwaysUseCommon || kIsWeb) {
       preview = getCommonScanner();
@@ -80,10 +77,7 @@ class FitatuBarcodeScannerPreviewState extends State<FitatuBarcodeScannerPreview
       preview = getCommonScanner();
     }
 
-    return PreviewOverlayTheme(
-      themeData: widget.theme,
-      child: preview,
-    );
+    return PreviewOverlayTheme(themeData: widget.theme, child: preview);
   }
 
   @override

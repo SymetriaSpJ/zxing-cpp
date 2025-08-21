@@ -27,9 +27,7 @@ class _CameraPermissionsGuardState extends State<CameraPermissionsGuard> {
   Future<void> checkPermissions() async {
     _hasPermissions.value = await Permission.camera.isGranted
         ? true
-        : await Permission.camera
-            .request()
-            .then((value) => value == PermissionStatus.granted);
+        : await Permission.camera.request().then((value) => value == PermissionStatus.granted);
   }
 
   @override

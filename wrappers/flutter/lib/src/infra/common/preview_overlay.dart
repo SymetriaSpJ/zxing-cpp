@@ -66,15 +66,15 @@ class _PreviewOverlayPainter extends CustomPainter {
     required this.metrix,
     required this.theme,
     required this.animation,
-  })  : overlayPaint = Paint()..color = theme.overlayColor,
-        laserPaint = Paint()
-          ..style = PaintingStyle.stroke
-          ..color = theme.laserLineColor.withValues(alpha: animation)
-          ..strokeWidth = theme.laserLineThickness,
-        cropRectBorderPaint = Paint()
-          ..style = PaintingStyle.stroke
-          ..color = theme.cropRectBorderColor
-          ..strokeWidth = theme.cropRectBorderThickness;
+  }) : overlayPaint = Paint()..color = theme.overlayColor,
+       laserPaint = Paint()
+         ..style = PaintingStyle.stroke
+         ..color = theme.laserLineColor.withValues(alpha: animation)
+         ..strokeWidth = theme.laserLineThickness,
+       cropRectBorderPaint = Paint()
+         ..style = PaintingStyle.stroke
+         ..color = theme.cropRectBorderColor
+         ..strokeWidth = theme.cropRectBorderThickness;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -104,14 +104,13 @@ class _PreviewOverlayPainter extends CustomPainter {
     canvas.drawPath(
       Path.combine(
         PathOperation.difference,
-        Path()
-          ..addRect(
-            Rect.fromCenter(
-              center: Offset((metrix.width - 1) / 2, metrix.height / 2),
-              width: size.height / scale,
-              height: size.width / scale,
-            ),
+        Path()..addRect(
+          Rect.fromCenter(
+            center: Offset((metrix.width - 1) / 2, metrix.height / 2),
+            width: size.height / scale,
+            height: size.width / scale,
           ),
+        ),
         Path()..addRRect(roundedCropRect),
       ),
       overlayPaint,
