@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:fitatu_barcode_scanner/pigeon.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 

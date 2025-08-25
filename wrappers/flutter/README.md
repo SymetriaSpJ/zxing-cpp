@@ -17,5 +17,5 @@ To work with native plugin code:
 To generate pigeon interfaces run:
 
 ```bash
-dart run pigeon --input=pigeons/api.dart
+dart run pigeon --input=pigeons/pigeons.dart
 ```

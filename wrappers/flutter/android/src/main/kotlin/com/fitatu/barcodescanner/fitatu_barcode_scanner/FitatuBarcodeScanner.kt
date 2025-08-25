@@ -123,34 +123,30 @@ class FitatuBarcodeScanner(
 
 					try {
 						val result = barcodeReader.read(image)
-						val flutterResult = result?.let {
-							FitatuBarcodeScannerResult(
-								code = result.text?.trim()?.takeIf { it.isNotBlank() },
-								format = when (result.format) {
-									BarcodeReader.Format.NONE -> FitatuBarcodeFormat.NONE
-									BarcodeReader.Format.AZTEC -> FitatuBarcodeFormat.AZTEC
-									BarcodeReader.Format.CODABAR -> FitatuBarcodeFormat.CODABAR
-									BarcodeReader.Format.CODE_39 -> FitatuBarcodeFormat.CODE39
-									BarcodeReader.Format.CODE_93 -> FitatuBarcodeFormat.CODE93
-									BarcodeReader.Format.CODE_128 -> FitatuBarcodeFormat.CODE128
-									BarcodeReader.Format.DATA_BAR -> FitatuBarcodeFormat.DATA_BAR
-									BarcodeReader.Format.DATA_BAR_EXPANDED -> FitatuBarcodeFormat.DATA_BAR_EXPANDED
-									BarcodeReader.Format.DATA_MATRIX -> FitatuBarcodeFormat.DATA_MATRIX
-									BarcodeReader.Format.EAN_8 -> FitatuBarcodeFormat.EAN8
-									BarcodeReader.Format.EAN_13 -> FitatuBarcodeFormat.EAN13
-									BarcodeReader.Format.ITF -> FitatuBarcodeFormat.ITF
-									BarcodeReader.Format.MAXICODE -> FitatuBarcodeFormat.MAXICODE
-									BarcodeReader.Format.PDF_417 -> FitatuBarcodeFormat.PDF417
-									BarcodeReader.Format.QR_CODE -> FitatuBarcodeFormat.QR_CODE
-									BarcodeReader.Format.MICRO_QR_CODE -> FitatuBarcodeFormat.MICRO_QR_CODE
-									BarcodeReader.Format.UPC_A -> FitatuBarcodeFormat.UPC_A
-									BarcodeReader.Format.UPC_E -> FitatuBarcodeFormat.UPC_E
-								}
-							)
-						} ?: FitatuBarcodeScannerResult(code = null, format = FitatuBarcodeFormat.NONE)
+						val code = result?.text?.trim()?.takeIf { it.isNotBlank() }
+						val format = when (result?.format) {
+							BarcodeReader.Format.AZTEC -> FitatuBarcodeFormat.AZTEC
+							BarcodeReader.Format.CODABAR -> FitatuBarcodeFormat.CODABAR
+							BarcodeReader.Format.CODE_39 -> FitatuBarcodeFormat.CODE39
+							BarcodeReader.Format.CODE_93 -> FitatuBarcodeFormat.CODE93
+							BarcodeReader.Format.CODE_128 -> FitatuBarcodeFormat.CODE128
+							BarcodeReader.Format.DATA_BAR -> FitatuBarcodeFormat.DATA_BAR
+							BarcodeReader.Format.DATA_BAR_EXPANDED -> FitatuBarcodeFormat.DATA_BAR_EXPANDED
+							BarcodeReader.Format.DATA_MATRIX -> FitatuBarcodeFormat.DATA_MATRIX
+							BarcodeReader.Format.EAN_8 -> FitatuBarcodeFormat.EAN8
+							BarcodeReader.Format.EAN_13 -> FitatuBarcodeFormat.EAN13
+							BarcodeReader.Format.ITF -> FitatuBarcodeFormat.ITF
+							BarcodeReader.Format.MAXICODE -> FitatuBarcodeFormat.MAXICODE
+							BarcodeReader.Format.PDF_417 -> FitatuBarcodeFormat.PDF417
+							BarcodeReader.Format.QR_CODE -> FitatuBarcodeFormat.QR_CODE
+							BarcodeReader.Format.MICRO_QR_CODE -> FitatuBarcodeFormat.MICRO_QR_CODE
+							BarcodeReader.Format.UPC_A -> FitatuBarcodeFormat.UPC_A
+							BarcodeReader.Format.UPC_E -> FitatuBarcodeFormat.UPC_E
+							null, BarcodeReader.Format.NONE -> FitatuBarcodeFormat.UNKNOWN
+						}
 
 						ContextCompat.getMainExecutor(context).execute {
-							flutterApi.onScanResult(flutterResult) {}
+							flutterApi.onScanResult(code, format) {}
 						}
 					} catch (e: Exception) {
 						ContextCompat.getMainExecutor(context).execute {

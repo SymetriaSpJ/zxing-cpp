@@ -40,8 +40,6 @@ bool _deepEquals(Object? a, Object? b) {
 
 
 enum FitatuBarcodeFormat {
-  /// No format detected.
-  none,
   /// Aztec 2D barcode format.
   aztec,
   /// Codabar 1D barcode format, used in libraries, blood banks, parcels.
@@ -79,55 +77,8 @@ enum FitatuBarcodeFormat {
   /// Special value that maps to the `BarcodeFormat.all` enum from the mobile_scanner package.
   /// See: https://pub.dev/documentation/mobile_scanner/latest/mobile_scanner/BarcodeFormat.html
   all,
-  /// Special value that maps to the `BarcodeFormat.unknown` enum from the mobile_scanner package.
-  /// See: https://pub.dev/documentation/mobile_scanner/latest/mobile_scanner/BarcodeFormat.html
-  unknowm,
-}
-
-class FitatuBarcodeScannerResult {
-  FitatuBarcodeScannerResult({
-    this.code,
-    required this.format,
-  });
-
-  String? code;
-
-  FitatuBarcodeFormat format;
-
-  List<Object?> _toList() {
-    return <Object?>[
-      code,
-      format,
-    ];
-  }
-
-  Object encode() {
-    return _toList();  }
-
-  static FitatuBarcodeScannerResult decode(Object result) {
-    result as List<Object?>;
-    return FitatuBarcodeScannerResult(
-      code: result[0] as String?,
-      format: result[1]! as FitatuBarcodeFormat,
-    );
-  }
-
-  @override
-  // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  bool operator ==(Object other) {
-    if (other is! FitatuBarcodeScannerResult || other.runtimeType != runtimeType) {
-      return false;
-    }
-    if (identical(this, other)) {
-      return true;
-    }
-    return _deepEquals(encode(), other.encode());
-  }
-
-  @override
-  // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => Object.hashAll(_toList())
-;
+  /// Unknown code format
+  unknown,
 }
 
 class CameraConfig {
@@ -375,20 +326,17 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is FitatuBarcodeFormat) {
       buffer.putUint8(129);
       writeValue(buffer, value.index);
-    }    else if (value is FitatuBarcodeScannerResult) {
+    }    else if (value is CameraConfig) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
-    }    else if (value is CameraConfig) {
+    }    else if (value is CameraImage) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    }    else if (value is CameraImage) {
+    }    else if (value is CropRect) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
-    }    else if (value is CropRect) {
-      buffer.putUint8(133);
-      writeValue(buffer, value.encode());
     }    else if (value is ScannerOptions) {
-      buffer.putUint8(134);
+      buffer.putUint8(133);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -402,14 +350,12 @@ class _PigeonCodec extends StandardMessageCodec {
         final int? value = readValue(buffer) as int?;
         return value == null ? null : FitatuBarcodeFormat.values[value];
       case 130: 
-        return FitatuBarcodeScannerResult.decode(readValue(buffer)!);
-      case 131: 
         return CameraConfig.decode(readValue(buffer)!);
-      case 132: 
+      case 131: 
         return CameraImage.decode(readValue(buffer)!);
-      case 133: 
+      case 132: 
         return CropRect.decode(readValue(buffer)!);
-      case 134: 
+      case 133: 
         return ScannerOptions.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -509,7 +455,7 @@ abstract class FitatuBarcodeScannerFlutterApi {
 
   void onCameraImage(CameraImage cameraImage);
 
-  void onScanResult(FitatuBarcodeScannerResult code);
+  void onScanResult(String? code, FitatuBarcodeFormat format);
 
   void onScanError(String error);
 
@@ -599,11 +545,12 @@ abstract class FitatuBarcodeScannerFlutterApi {
           assert(message != null,
           'Argument for dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onScanResult was null.');
           final List<Object?> args = (message as List<Object?>?)!;
-          final FitatuBarcodeScannerResult? arg_code = (args[0] as FitatuBarcodeScannerResult?);
-          assert(arg_code != null,
-              'Argument for dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onScanResult was null, expected non-null FitatuBarcodeScannerResult.');
+          final String? arg_code = (args[0] as String?);
+          final FitatuBarcodeFormat? arg_format = (args[1] as FitatuBarcodeFormat?);
+          assert(arg_format != null,
+              'Argument for dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onScanResult was null, expected non-null FitatuBarcodeFormat.');
           try {
-            api.onScanResult(arg_code!);
+            api.onScanResult(arg_code, arg_format!);
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);

@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../pigeon.dart';
 import '../scanner_preview_mixin.dart';
 import 'android/android_fitatu_scanner_preview.dart';
 import 'android/camera_permissions_guard.dart';

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-import '../../../pigeon.dart';
 import '../../scanner_preview_mixin.dart';
 
 class CommonFitatuScannerPreview extends StatefulWidget {
@@ -91,16 +90,16 @@ class _CommonFitatuScannerPreviewState extends State<CommonFitatuScannerPreview>
               onDetect: (response) {
                 final barcodes = response.barcodes.where((b) => b.rawValue != null).whereType<Barcode>().toList();
                 if (barcodes.isEmpty) {
-                  widget.onResult(FitatuBarcodeScannerResult(code: null, format: FitatuBarcodeFormat.none));
+                  widget.onResult(FitatuBarcodeScannerResult(null, FitatuBarcodeFormat.unknown));
                 } else {
                   final barcode = barcodes.first;
                   final rawBarcode = barcode.rawValue;
 
                   widget.onResult(
                     FitatuBarcodeScannerResult(
-                      code: rawBarcode,
-                      format: switch (barcode.format) {
-                        BarcodeFormat.unknown => FitatuBarcodeFormat.unknowm,
+                      rawBarcode,
+                      switch (barcode.format) {
+                        BarcodeFormat.unknown => FitatuBarcodeFormat.unknown,
                         BarcodeFormat.all => FitatuBarcodeFormat.all,
                         BarcodeFormat.code128 => FitatuBarcodeFormat.code128,
                         BarcodeFormat.code39 => FitatuBarcodeFormat.code39,

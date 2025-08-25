@@ -2,10 +2,10 @@ import 'package:pigeon/pigeon.dart';
 
 @ConfigurePigeon(
   PigeonOptions(
-    input: 'pigeons/api.dart',
-    dartOut: 'lib/pigeon.dart',
-    swiftOut: 'ios/Runner/Pigeon.swift',
-    kotlinOut: 'android/src/main/kotlin/com/fitatu/barcodescanner/fitatu_barcode_scanner/Pigeon.kt',
+    input: 'pigeons/pigeons.dart',
+    dartOut: 'lib/src/pigeons/fitatu_barcode_scanner.pigeon.dart',
+    swiftOut: 'ios/Runner/FitatuBarcodeScannerPigeons.swift',
+    kotlinOut: 'android/src/main/kotlin/com/fitatu/barcodescanner/fitatu_barcode_scanner/FitatuBarcodeScannerPigeons.kt',
     kotlinOptions: KotlinOptions(
       package: 'com.fitatu.barcodescanner.fitatu_barcode_scanner',
       errorClassName: 'FitatuBarcodeScannerFlutterError',
@@ -24,21 +24,11 @@ abstract class FitatuBarcodeScannerFlutterApi {
   void onTextureChanged(CameraConfig? cameraConfig);
   void onTorchStateChanged(bool isEnabled);
   void onCameraImage(CameraImage cameraImage);
-  void onScanResult(FitatuBarcodeScannerResult code);
+  void onScanResult(String? code, FitatuBarcodeFormat format);
   void onScanError(String error);
 }
 
-class FitatuBarcodeScannerResult {
-  final String? code;
-  final FitatuBarcodeFormat format;
-
-  FitatuBarcodeScannerResult(this.code, this.format);
-}
-
 enum FitatuBarcodeFormat {
-  /// No format detected.
-  none,
-
   /// Aztec 2D barcode format.
   aztec,
 
@@ -94,9 +84,8 @@ enum FitatuBarcodeFormat {
   /// See: https://pub.dev/documentation/mobile_scanner/latest/mobile_scanner/BarcodeFormat.html
   all,
 
-  /// Special value that maps to the `BarcodeFormat.unknown` enum from the mobile_scanner package.
-  /// See: https://pub.dev/documentation/mobile_scanner/latest/mobile_scanner/BarcodeFormat.html
-  unknowm,
+  /// Unknown code format
+  unknown,
 }
 
 class CameraConfig {

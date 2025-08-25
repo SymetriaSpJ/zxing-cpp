@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:fitatu_barcode_scanner/fitatu_barcode_scanner.dart';
-import 'package:fitatu_barcode_scanner/pigeon.dart';
 import 'package:flutter/material.dart';
 
 import '../../scanner_preview_mixin.dart';

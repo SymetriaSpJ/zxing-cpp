@@ -1,4 +1,4 @@
-import 'package:fitatu_barcode_scanner/pigeon.dart';
+import 'package:fitatu_barcode_scanner/src/pigeons/fitatu_barcode_scanner.pigeon.dart';
 import 'package:flutter/foundation.dart';
 
 typedef FitatuBarcodeScannerErrorCallback = void Function(String? error);
@@ -52,10 +52,10 @@ class FitatuBarcodeScanner extends FitatuBarcodeScannerHostApi with ChangeNotifi
   }
 
   @override
-  void onScanResult(FitatuBarcodeScannerResult code) {
-    _result = code;
+  void onScanResult(String? code, FitatuBarcodeFormat format) {
+    _result = FitatuBarcodeScannerResult(code, format);
+    onResult(_result!);
     _error = null;
-    onResult(code);
     notifyListeners();
   }
 
@@ -86,4 +86,18 @@ class FitatuBarcodeScanner extends FitatuBarcodeScannerHostApi with ChangeNotifi
     _cameraImage = cameraImage;
     notifyListeners();
   }
+}
+
+@immutable
+class FitatuBarcodeScannerResult {
+  const FitatuBarcodeScannerResult(this.code, this.format);
+
+  final String? code;
+  final FitatuBarcodeFormat format;
+
+  @override
+  int get hashCode => Object.hash(code, format);
+
+  @override
+  bool operator ==(Object other) => other is FitatuBarcodeScannerResult && other.hashCode == hashCode;
 }

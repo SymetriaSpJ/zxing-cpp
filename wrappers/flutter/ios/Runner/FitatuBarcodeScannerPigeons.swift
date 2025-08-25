@@ -68,7 +68,7 @@ private func nilOrValue<T>(_ value: Any?) -> T? {
   return value as! T?
 }
 
-func deepEqualsPigeon(_ lhs: Any?, _ rhs: Any?) -> Bool {
+func deepEqualsFitatuBarcodeScannerPigeons(_ lhs: Any?, _ rhs: Any?) -> Bool {
   let cleanLhs = nilOrValue(lhs) as Any?
   let cleanRhs = nilOrValue(rhs) as Any?
   switch (cleanLhs, cleanRhs) {
@@ -87,7 +87,7 @@ func deepEqualsPigeon(_ lhs: Any?, _ rhs: Any?) -> Bool {
   case let (cleanLhsArray, cleanRhsArray) as ([Any?], [Any?]):
     guard cleanLhsArray.count == cleanRhsArray.count else { return false }
     for (index, element) in cleanLhsArray.enumerated() {
-      if !deepEqualsPigeon(element, cleanRhsArray[index]) {
+      if !deepEqualsFitatuBarcodeScannerPigeons(element, cleanRhsArray[index]) {
         return false
       }
     }
@@ -97,7 +97,7 @@ func deepEqualsPigeon(_ lhs: Any?, _ rhs: Any?) -> Bool {
     guard cleanLhsDictionary.count == cleanRhsDictionary.count else { return false }
     for (key, cleanLhsValue) in cleanLhsDictionary {
       guard cleanRhsDictionary.index(forKey: key) != nil else { return false }
-      if !deepEqualsPigeon(cleanLhsValue, cleanRhsDictionary[key]!) {
+      if !deepEqualsFitatuBarcodeScannerPigeons(cleanLhsValue, cleanRhsDictionary[key]!) {
         return false
       }
     }
@@ -109,16 +109,16 @@ func deepEqualsPigeon(_ lhs: Any?, _ rhs: Any?) -> Bool {
   }
 }
 
-func deepHashPigeon(value: Any?, hasher: inout Hasher) {
+func deepHashFitatuBarcodeScannerPigeons(value: Any?, hasher: inout Hasher) {
   if let valueList = value as? [AnyHashable] {
-     for item in valueList { deepHashPigeon(value: item, hasher: &hasher) }
+     for item in valueList { deepHashFitatuBarcodeScannerPigeons(value: item, hasher: &hasher) }
      return
   }
 
   if let valueDict = value as? [AnyHashable: AnyHashable] {
     for key in valueDict.keys { 
       hasher.combine(key)
-      deepHashPigeon(value: valueDict[key]!, hasher: &hasher)
+      deepHashFitatuBarcodeScannerPigeons(value: valueDict[key]!, hasher: &hasher)
     }
     return
   }
@@ -133,77 +133,45 @@ func deepHashPigeon(value: Any?, hasher: inout Hasher) {
     
 
 enum FitatuBarcodeFormat: Int {
-  /// No format detected.
-  case none = 0
   /// Aztec 2D barcode format.
-  case aztec = 1
+  case aztec = 0
   /// Codabar 1D barcode format, used in libraries, blood banks, parcels.
-  case codabar = 2
+  case codabar = 1
   /// Code 39 1D barcode format, used in automotive and defense industries.
-  case code39 = 3
+  case code39 = 2
   /// Code 93 1D barcode format, compact and high-density, used in logistics.
-  case code93 = 4
+  case code93 = 3
   /// Code 128 1D barcode format, high-density, used in shipping and packaging.
-  case code128 = 5
+  case code128 = 4
   /// DataBar (RSS-14) 1D barcode format, used in retail and coupons.
-  case dataBar = 6
+  case dataBar = 5
   /// DataBar Expanded 1D barcode format, stores more data, used for coupons.
-  case dataBarExpanded = 7
+  case dataBarExpanded = 6
   /// Data Matrix 2D barcode format, used for marking small items.
-  case dataMatrix = 8
+  case dataMatrix = 7
   /// EAN-8 1D barcode format, short version of EAN-13, used on small packages.
-  case ean8 = 9
+  case ean8 = 8
   /// EAN-13 1D barcode format, used worldwide for retail products.
-  case ean13 = 10
+  case ean13 = 9
   /// ITF (Interleaved 2 of 5) 1D barcode format, used on cartons and packaging.
-  case itf = 11
+  case itf = 10
   /// MaxiCode 2D barcode format, used by UPS for package tracking.
-  case maxicode = 12
+  case maxicode = 11
   /// PDF417 2D barcode format, used for transport, identification cards.
-  case pdf417 = 13
+  case pdf417 = 12
   /// QR Code 2D barcode format, widely used for URLs, payments, and info.
-  case qrCode = 14
+  case qrCode = 13
   /// Micro QR Code 2D barcode format, smaller version of QR Code.
-  case microQrCode = 15
+  case microQrCode = 14
   /// UPC-A 1D barcode format, used for retail products in North America.
-  case upcA = 16
+  case upcA = 15
   /// UPC-E 1D barcode format, compressed version of UPC-A for small packages.
-  case upcE = 17
+  case upcE = 16
   /// Special value that maps to the `BarcodeFormat.all` enum from the mobile_scanner package.
   /// See: https://pub.dev/documentation/mobile_scanner/latest/mobile_scanner/BarcodeFormat.html
-  case all = 18
-  /// Special value that maps to the `BarcodeFormat.unknown` enum from the mobile_scanner package.
-  /// See: https://pub.dev/documentation/mobile_scanner/latest/mobile_scanner/BarcodeFormat.html
-  case unknowm = 19
-}
-
-/// Generated class from Pigeon that represents data sent in messages.
-struct FitatuBarcodeScannerResult: Hashable {
-  var code: String? = nil
-  var format: FitatuBarcodeFormat
-
-
-  // swift-format-ignore: AlwaysUseLowerCamelCase
-  static func fromList(_ pigeonVar_list: [Any?]) -> FitatuBarcodeScannerResult? {
-    let code: String? = nilOrValue(pigeonVar_list[0])
-    let format = pigeonVar_list[1] as! FitatuBarcodeFormat
-
-    return FitatuBarcodeScannerResult(
-      code: code,
-      format: format
-    )
-  }
-  func toList() -> [Any?] {
-    return [
-      code,
-      format,
-    ]
-  }
-  static func == (lhs: FitatuBarcodeScannerResult, rhs: FitatuBarcodeScannerResult) -> Bool {
-    return deepEqualsPigeon(lhs.toList(), rhs.toList())  }
-  func hash(into hasher: inout Hasher) {
-    deepHashPigeon(value: toList(), hasher: &hasher)
-  }
+  case all = 17
+  /// Unknown code format
+  case unknown = 18
 }
 
 /// Generated class from Pigeon that represents data sent in messages.
@@ -233,9 +201,9 @@ struct CameraConfig: Hashable {
     ]
   }
   static func == (lhs: CameraConfig, rhs: CameraConfig) -> Bool {
-    return deepEqualsPigeon(lhs.toList(), rhs.toList())  }
+    return deepEqualsFitatuBarcodeScannerPigeons(lhs.toList(), rhs.toList())  }
   func hash(into hasher: inout Hasher) {
-    deepHashPigeon(value: toList(), hasher: &hasher)
+    deepHashFitatuBarcodeScannerPigeons(value: toList(), hasher: &hasher)
   }
 }
 
@@ -270,9 +238,9 @@ struct CameraImage: Hashable {
     ]
   }
   static func == (lhs: CameraImage, rhs: CameraImage) -> Bool {
-    return deepEqualsPigeon(lhs.toList(), rhs.toList())  }
+    return deepEqualsFitatuBarcodeScannerPigeons(lhs.toList(), rhs.toList())  }
   func hash(into hasher: inout Hasher) {
-    deepHashPigeon(value: toList(), hasher: &hasher)
+    deepHashFitatuBarcodeScannerPigeons(value: toList(), hasher: &hasher)
   }
 }
 
@@ -307,9 +275,9 @@ struct CropRect: Hashable {
     ]
   }
   static func == (lhs: CropRect, rhs: CropRect) -> Bool {
-    return deepEqualsPigeon(lhs.toList(), rhs.toList())  }
+    return deepEqualsFitatuBarcodeScannerPigeons(lhs.toList(), rhs.toList())  }
   func hash(into hasher: inout Hasher) {
-    deepHashPigeon(value: toList(), hasher: &hasher)
+    deepHashFitatuBarcodeScannerPigeons(value: toList(), hasher: &hasher)
   }
 }
 
@@ -356,13 +324,13 @@ struct ScannerOptions: Hashable {
     ]
   }
   static func == (lhs: ScannerOptions, rhs: ScannerOptions) -> Bool {
-    return deepEqualsPigeon(lhs.toList(), rhs.toList())  }
+    return deepEqualsFitatuBarcodeScannerPigeons(lhs.toList(), rhs.toList())  }
   func hash(into hasher: inout Hasher) {
-    deepHashPigeon(value: toList(), hasher: &hasher)
+    deepHashFitatuBarcodeScannerPigeons(value: toList(), hasher: &hasher)
   }
 }
 
-private class PigeonPigeonCodecReader: FlutterStandardReader {
+private class FitatuBarcodeScannerPigeonsPigeonCodecReader: FlutterStandardReader {
   override func readValue(ofType type: UInt8) -> Any? {
     switch type {
     case 129:
@@ -372,14 +340,12 @@ private class PigeonPigeonCodecReader: FlutterStandardReader {
       }
       return nil
     case 130:
-      return FitatuBarcodeScannerResult.fromList(self.readValue() as! [Any?])
-    case 131:
       return CameraConfig.fromList(self.readValue() as! [Any?])
-    case 132:
+    case 131:
       return CameraImage.fromList(self.readValue() as! [Any?])
-    case 133:
+    case 132:
       return CropRect.fromList(self.readValue() as! [Any?])
-    case 134:
+    case 133:
       return ScannerOptions.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
@@ -387,25 +353,22 @@ private class PigeonPigeonCodecReader: FlutterStandardReader {
   }
 }
 
-private class PigeonPigeonCodecWriter: FlutterStandardWriter {
+private class FitatuBarcodeScannerPigeonsPigeonCodecWriter: FlutterStandardWriter {
   override func writeValue(_ value: Any) {
     if let value = value as? FitatuBarcodeFormat {
       super.writeByte(129)
       super.writeValue(value.rawValue)
-    } else if let value = value as? FitatuBarcodeScannerResult {
+    } else if let value = value as? CameraConfig {
       super.writeByte(130)
       super.writeValue(value.toList())
-    } else if let value = value as? CameraConfig {
+    } else if let value = value as? CameraImage {
       super.writeByte(131)
       super.writeValue(value.toList())
-    } else if let value = value as? CameraImage {
+    } else if let value = value as? CropRect {
       super.writeByte(132)
       super.writeValue(value.toList())
-    } else if let value = value as? CropRect {
-      super.writeByte(133)
-      super.writeValue(value.toList())
     } else if let value = value as? ScannerOptions {
-      super.writeByte(134)
+      super.writeByte(133)
       super.writeValue(value.toList())
     } else {
       super.writeValue(value)
@@ -413,18 +376,18 @@ private class PigeonPigeonCodecWriter: FlutterStandardWriter {
   }
 }
 
-private class PigeonPigeonCodecReaderWriter: FlutterStandardReaderWriter {
+private class FitatuBarcodeScannerPigeonsPigeonCodecReaderWriter: FlutterStandardReaderWriter {
   override func reader(with data: Data) -> FlutterStandardReader {
-    return PigeonPigeonCodecReader(data: data)
+    return FitatuBarcodeScannerPigeonsPigeonCodecReader(data: data)
   }
 
   override func writer(with data: NSMutableData) -> FlutterStandardWriter {
-    return PigeonPigeonCodecWriter(data: data)
+    return FitatuBarcodeScannerPigeonsPigeonCodecWriter(data: data)
   }
 }
 
-class PigeonPigeonCodec: FlutterStandardMessageCodec, @unchecked Sendable {
-  static let shared = PigeonPigeonCodec(readerWriter: PigeonPigeonCodecReaderWriter())
+class FitatuBarcodeScannerPigeonsPigeonCodec: FlutterStandardMessageCodec, @unchecked Sendable {
+  static let shared = FitatuBarcodeScannerPigeonsPigeonCodec(readerWriter: FitatuBarcodeScannerPigeonsPigeonCodecReaderWriter())
 }
 
 /// Generated protocol from Pigeon that represents a handler of messages from Flutter.
@@ -436,7 +399,7 @@ protocol FitatuBarcodeScannerHostApi {
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
 class FitatuBarcodeScannerHostApiSetup {
-  static var codec: FlutterStandardMessageCodec { PigeonPigeonCodec.shared }
+  static var codec: FlutterStandardMessageCodec { FitatuBarcodeScannerPigeonsPigeonCodec.shared }
   /// Sets up an instance of `FitatuBarcodeScannerHostApi` to handle messages through the `binaryMessenger`.
   static func setUp(binaryMessenger: FlutterBinaryMessenger, api: FitatuBarcodeScannerHostApi?, messageChannelSuffix: String = "") {
     let channelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
@@ -490,7 +453,7 @@ protocol FitatuBarcodeScannerFlutterApiProtocol {
   func onTextureChanged(cameraConfig cameraConfigArg: CameraConfig?, completion: @escaping (Result<Void, PigeonError>) -> Void)
   func onTorchStateChanged(isEnabled isEnabledArg: Bool, completion: @escaping (Result<Void, PigeonError>) -> Void)
   func onCameraImage(cameraImage cameraImageArg: CameraImage, completion: @escaping (Result<Void, PigeonError>) -> Void)
-  func onScanResult(code codeArg: FitatuBarcodeScannerResult, completion: @escaping (Result<Void, PigeonError>) -> Void)
+  func onScanResult(code codeArg: String?, format formatArg: FitatuBarcodeFormat, completion: @escaping (Result<Void, PigeonError>) -> Void)
   func onScanError(error errorArg: String, completion: @escaping (Result<Void, PigeonError>) -> Void)
 }
 class FitatuBarcodeScannerFlutterApi: FitatuBarcodeScannerFlutterApiProtocol {
@@ -500,8 +463,8 @@ class FitatuBarcodeScannerFlutterApi: FitatuBarcodeScannerFlutterApiProtocol {
     self.binaryMessenger = binaryMessenger
     self.messageChannelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
   }
-  var codec: PigeonPigeonCodec {
-    return PigeonPigeonCodec.shared
+  var codec: FitatuBarcodeScannerPigeonsPigeonCodec {
+    return FitatuBarcodeScannerPigeonsPigeonCodec.shared
   }
   func onTextureChanged(cameraConfig cameraConfigArg: CameraConfig?, completion: @escaping (Result<Void, PigeonError>) -> Void) {
     let channelName: String = "dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onTextureChanged\(messageChannelSuffix)"
@@ -557,10 +520,10 @@ class FitatuBarcodeScannerFlutterApi: FitatuBarcodeScannerFlutterApiProtocol {
       }
     }
   }
-  func onScanResult(code codeArg: FitatuBarcodeScannerResult, completion: @escaping (Result<Void, PigeonError>) -> Void) {
+  func onScanResult(code codeArg: String?, format formatArg: FitatuBarcodeFormat, completion: @escaping (Result<Void, PigeonError>) -> Void) {
     let channelName: String = "dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onScanResult\(messageChannelSuffix)"
     let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
-    channel.sendMessage([codeArg] as [Any?]) { response in
+    channel.sendMessage([codeArg, formatArg] as [Any?]) { response in
       guard let listResponse = response as? [Any?] else {
         completion(.failure(createConnectionError(withChannelName: channelName)))
         return

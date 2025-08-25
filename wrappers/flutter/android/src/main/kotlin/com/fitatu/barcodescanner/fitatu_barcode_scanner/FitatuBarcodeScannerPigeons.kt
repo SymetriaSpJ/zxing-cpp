@@ -13,7 +13,7 @@ import io.flutter.plugin.common.StandardMethodCodec
 import io.flutter.plugin.common.StandardMessageCodec
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
-private object PigeonPigeonUtils {
+private object FitatuBarcodeScannerPigeonsPigeonUtils {
 
   fun createConnectionError(channelName: String): FitatuBarcodeScannerFlutterError {
     return FitatuBarcodeScannerFlutterError("channel-error",  "Unable to establish connection on channel: '$channelName'.", "")  }
@@ -82,89 +82,53 @@ class FitatuBarcodeScannerFlutterError (
 ) : Throwable()
 
 enum class FitatuBarcodeFormat(val raw: Int) {
-  /** No format detected. */
-  NONE(0),
   /** Aztec 2D barcode format. */
-  AZTEC(1),
+  AZTEC(0),
   /** Codabar 1D barcode format, used in libraries, blood banks, parcels. */
-  CODABAR(2),
+  CODABAR(1),
   /** Code 39 1D barcode format, used in automotive and defense industries. */
-  CODE39(3),
+  CODE39(2),
   /** Code 93 1D barcode format, compact and high-density, used in logistics. */
-  CODE93(4),
+  CODE93(3),
   /** Code 128 1D barcode format, high-density, used in shipping and packaging. */
-  CODE128(5),
+  CODE128(4),
   /** DataBar (RSS-14) 1D barcode format, used in retail and coupons. */
-  DATA_BAR(6),
+  DATA_BAR(5),
   /** DataBar Expanded 1D barcode format, stores more data, used for coupons. */
-  DATA_BAR_EXPANDED(7),
+  DATA_BAR_EXPANDED(6),
   /** Data Matrix 2D barcode format, used for marking small items. */
-  DATA_MATRIX(8),
+  DATA_MATRIX(7),
   /** EAN-8 1D barcode format, short version of EAN-13, used on small packages. */
-  EAN8(9),
+  EAN8(8),
   /** EAN-13 1D barcode format, used worldwide for retail products. */
-  EAN13(10),
+  EAN13(9),
   /** ITF (Interleaved 2 of 5) 1D barcode format, used on cartons and packaging. */
-  ITF(11),
+  ITF(10),
   /** MaxiCode 2D barcode format, used by UPS for package tracking. */
-  MAXICODE(12),
+  MAXICODE(11),
   /** PDF417 2D barcode format, used for transport, identification cards. */
-  PDF417(13),
+  PDF417(12),
   /** QR Code 2D barcode format, widely used for URLs, payments, and info. */
-  QR_CODE(14),
+  QR_CODE(13),
   /** Micro QR Code 2D barcode format, smaller version of QR Code. */
-  MICRO_QR_CODE(15),
+  MICRO_QR_CODE(14),
   /** UPC-A 1D barcode format, used for retail products in North America. */
-  UPC_A(16),
+  UPC_A(15),
   /** UPC-E 1D barcode format, compressed version of UPC-A for small packages. */
-  UPC_E(17),
+  UPC_E(16),
   /**
    * Special value that maps to the `BarcodeFormat.all` enum from the mobile_scanner package.
    * See: https://pub.dev/documentation/mobile_scanner/latest/mobile_scanner/BarcodeFormat.html
    */
-  ALL(18),
-  /**
-   * Special value that maps to the `BarcodeFormat.unknown` enum from the mobile_scanner package.
-   * See: https://pub.dev/documentation/mobile_scanner/latest/mobile_scanner/BarcodeFormat.html
-   */
-  UNKNOWM(19);
+  ALL(17),
+  /** Unknown code format */
+  UNKNOWN(18);
 
   companion object {
     fun ofRaw(raw: Int): FitatuBarcodeFormat? {
       return values().firstOrNull { it.raw == raw }
     }
   }
-}
-
-/** Generated class from Pigeon that represents data sent in messages. */
-data class FitatuBarcodeScannerResult (
-  val code: String? = null,
-  val format: FitatuBarcodeFormat
-)
- {
-  companion object {
-    fun fromList(pigeonVar_list: List<Any?>): FitatuBarcodeScannerResult {
-      val code = pigeonVar_list[0] as String?
-      val format = pigeonVar_list[1] as FitatuBarcodeFormat
-      return FitatuBarcodeScannerResult(code, format)
-    }
-  }
-  fun toList(): List<Any?> {
-    return listOf(
-      code,
-      format,
-    )
-  }
-  override fun equals(other: Any?): Boolean {
-    if (other !is FitatuBarcodeScannerResult) {
-      return false
-    }
-    if (this === other) {
-      return true
-    }
-    return PigeonPigeonUtils.deepEquals(toList(), other.toList())  }
-
-  override fun hashCode(): Int = toList().hashCode()
 }
 
 /** Generated class from Pigeon that represents data sent in messages. */
@@ -196,7 +160,7 @@ data class CameraConfig (
     if (this === other) {
       return true
     }
-    return PigeonPigeonUtils.deepEquals(toList(), other.toList())  }
+    return FitatuBarcodeScannerPigeonsPigeonUtils.deepEquals(toList(), other.toList())  }
 
   override fun hashCode(): Int = toList().hashCode()
 }
@@ -233,7 +197,7 @@ data class CameraImage (
     if (this === other) {
       return true
     }
-    return PigeonPigeonUtils.deepEquals(toList(), other.toList())  }
+    return FitatuBarcodeScannerPigeonsPigeonUtils.deepEquals(toList(), other.toList())  }
 
   override fun hashCode(): Int = toList().hashCode()
 }
@@ -270,7 +234,7 @@ data class CropRect (
     if (this === other) {
       return true
     }
-    return PigeonPigeonUtils.deepEquals(toList(), other.toList())  }
+    return FitatuBarcodeScannerPigeonsPigeonUtils.deepEquals(toList(), other.toList())  }
 
   override fun hashCode(): Int = toList().hashCode()
 }
@@ -316,11 +280,11 @@ data class ScannerOptions (
     if (this === other) {
       return true
     }
-    return PigeonPigeonUtils.deepEquals(toList(), other.toList())  }
+    return FitatuBarcodeScannerPigeonsPigeonUtils.deepEquals(toList(), other.toList())  }
 
   override fun hashCode(): Int = toList().hashCode()
 }
-private open class PigeonPigeonCodec : StandardMessageCodec() {
+private open class FitatuBarcodeScannerPigeonsPigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
     return when (type) {
       129.toByte() -> {
@@ -330,25 +294,20 @@ private open class PigeonPigeonCodec : StandardMessageCodec() {
       }
       130.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          FitatuBarcodeScannerResult.fromList(it)
+          CameraConfig.fromList(it)
         }
       }
       131.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          CameraConfig.fromList(it)
+          CameraImage.fromList(it)
         }
       }
       132.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          CameraImage.fromList(it)
-        }
-      }
-      133.toByte() -> {
-        return (readValue(buffer) as? List<Any?>)?.let {
           CropRect.fromList(it)
         }
       }
-      134.toByte() -> {
+      133.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           ScannerOptions.fromList(it)
         }
@@ -362,24 +321,20 @@ private open class PigeonPigeonCodec : StandardMessageCodec() {
         stream.write(129)
         writeValue(stream, value.raw)
       }
-      is FitatuBarcodeScannerResult -> {
+      is CameraConfig -> {
         stream.write(130)
         writeValue(stream, value.toList())
       }
-      is CameraConfig -> {
+      is CameraImage -> {
         stream.write(131)
         writeValue(stream, value.toList())
       }
-      is CameraImage -> {
+      is CropRect -> {
         stream.write(132)
         writeValue(stream, value.toList())
       }
-      is CropRect -> {
-        stream.write(133)
-        writeValue(stream, value.toList())
-      }
       is ScannerOptions -> {
-        stream.write(134)
+        stream.write(133)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
@@ -396,7 +351,7 @@ interface FitatuBarcodeScannerHostApi {
   companion object {
     /** The codec used by FitatuBarcodeScannerHostApi. */
     val codec: MessageCodec<Any?> by lazy {
-      PigeonPigeonCodec()
+      FitatuBarcodeScannerPigeonsPigeonCodec()
     }
     /** Sets up an instance of `FitatuBarcodeScannerHostApi` to handle messages through the `binaryMessenger`. */
     @JvmOverloads
@@ -412,7 +367,7 @@ interface FitatuBarcodeScannerHostApi {
               api.init(optionsArg)
               listOf(null)
             } catch (exception: Throwable) {
-              PigeonPigeonUtils.wrapError(exception)
+              FitatuBarcodeScannerPigeonsPigeonUtils.wrapError(exception)
             }
             reply.reply(wrapped)
           }
@@ -428,7 +383,7 @@ interface FitatuBarcodeScannerHostApi {
               api.release()
               listOf(null)
             } catch (exception: Throwable) {
-              PigeonPigeonUtils.wrapError(exception)
+              FitatuBarcodeScannerPigeonsPigeonUtils.wrapError(exception)
             }
             reply.reply(wrapped)
           }
@@ -446,7 +401,7 @@ interface FitatuBarcodeScannerHostApi {
               api.setTorchEnabled(isEnabledArg)
               listOf(null)
             } catch (exception: Throwable) {
-              PigeonPigeonUtils.wrapError(exception)
+              FitatuBarcodeScannerPigeonsPigeonUtils.wrapError(exception)
             }
             reply.reply(wrapped)
           }
@@ -462,7 +417,7 @@ class FitatuBarcodeScannerFlutterApi(private val binaryMessenger: BinaryMessenge
   companion object {
     /** The codec used by FitatuBarcodeScannerFlutterApi. */
     val codec: MessageCodec<Any?> by lazy {
-      PigeonPigeonCodec()
+      FitatuBarcodeScannerPigeonsPigeonCodec()
     }
   }
   fun onTextureChanged(cameraConfigArg: CameraConfig?, callback: (Result<Unit>) -> Unit)
@@ -478,7 +433,7 @@ class FitatuBarcodeScannerFlutterApi(private val binaryMessenger: BinaryMessenge
           callback(Result.success(Unit))
         }
       } else {
-        callback(Result.failure(PigeonPigeonUtils.createConnectionError(channelName)))
+        callback(Result.failure(FitatuBarcodeScannerPigeonsPigeonUtils.createConnectionError(channelName)))
       } 
     }
   }
@@ -495,7 +450,7 @@ class FitatuBarcodeScannerFlutterApi(private val binaryMessenger: BinaryMessenge
           callback(Result.success(Unit))
         }
       } else {
-        callback(Result.failure(PigeonPigeonUtils.createConnectionError(channelName)))
+        callback(Result.failure(FitatuBarcodeScannerPigeonsPigeonUtils.createConnectionError(channelName)))
       } 
     }
   }
@@ -512,16 +467,16 @@ class FitatuBarcodeScannerFlutterApi(private val binaryMessenger: BinaryMessenge
           callback(Result.success(Unit))
         }
       } else {
-        callback(Result.failure(PigeonPigeonUtils.createConnectionError(channelName)))
+        callback(Result.failure(FitatuBarcodeScannerPigeonsPigeonUtils.createConnectionError(channelName)))
       } 
     }
   }
-  fun onScanResult(codeArg: FitatuBarcodeScannerResult, callback: (Result<Unit>) -> Unit)
+  fun onScanResult(codeArg: String?, formatArg: FitatuBarcodeFormat, callback: (Result<Unit>) -> Unit)
 {
     val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
     val channelName = "dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onScanResult$separatedMessageChannelSuffix"
     val channel = BasicMessageChannel<Any?>(binaryMessenger, channelName, codec)
-    channel.send(listOf(codeArg)) {
+    channel.send(listOf(codeArg, formatArg)) {
       if (it is List<*>) {
         if (it.size > 1) {
           callback(Result.failure(FitatuBarcodeScannerFlutterError(it[0] as String, it[1] as String, it[2] as String?)))
@@ -529,7 +484,7 @@ class FitatuBarcodeScannerFlutterApi(private val binaryMessenger: BinaryMessenge
           callback(Result.success(Unit))
         }
       } else {
-        callback(Result.failure(PigeonPigeonUtils.createConnectionError(channelName)))
+        callback(Result.failure(FitatuBarcodeScannerPigeonsPigeonUtils.createConnectionError(channelName)))
       } 
     }
   }
@@ -546,7 +501,7 @@ class FitatuBarcodeScannerFlutterApi(private val binaryMessenger: BinaryMessenge
           callback(Result.success(Unit))
         }
       } else {
-        callback(Result.failure(PigeonPigeonUtils.createConnectionError(channelName)))
+        callback(Result.failure(FitatuBarcodeScannerPigeonsPigeonUtils.createConnectionError(channelName)))
       } 
     }
   }
