@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-import '../../../pigeon.dart';
 import '../../scanner_preview_mixin.dart';
 
 class CommonFitatuScannerPreview extends StatefulWidget {
@@ -17,8 +16,8 @@ class CommonFitatuScannerPreview extends StatefulWidget {
   });
 
   final ScannerOptions options;
-  final ValueChanged<String?> onResult;
-  final ScannerErrorCallback? onError;
+  final FitatuBarcodeScannerResultCallback onResult;
+  final FitatuBarcodeScannerErrorCallback? onError;
   final VoidCallback? onChanged;
   final PreviewOverlayBuilder? overlayBuilder;
 
@@ -73,44 +72,70 @@ class _CommonFitatuScannerPreviewState extends State<CommonFitatuScannerPreview>
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final scanWindowSize = constraints.maxHeight * widget.options.cropPercent;
-      final scanWindow = Rect.fromCenter(
-        center: Offset(constraints.maxWidth / 2, constraints.maxHeight / 2),
-        width: scanWindowSize,
-        height: scanWindowSize,
-      );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final scanWindowSize = constraints.maxHeight * widget.options.cropPercent;
+        final scanWindow = Rect.fromCenter(
+          center: Offset(constraints.maxWidth / 2, constraints.maxHeight / 2),
+          width: scanWindowSize,
+          height: scanWindowSize,
+        );
 
-      return Stack(
-        fit: StackFit.expand,
-        children: [
-          MobileScanner(
-            controller: controller,
-            scanWindow: scanWindow,
-            onDetect: (response) {
-              final barcodes = response.barcodes.where((b) => b.rawValue != null).whereType<Barcode>().toList();
-              if (barcodes.isEmpty) {
-                widget.onResult(null);
-              } else {
-                widget.onResult(barcodes.first.rawValue);
-              }
-            },
-          ),
-          Builder(
-            builder: (context) {
-              final metrix = CameraPreviewMetrix(
-                cropRect: scanWindow,
-                width: constraints.maxWidth,
-                height: constraints.maxHeight,
-                rotationDegrees: 90,
-              );
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            MobileScanner(
+              controller: controller,
+              scanWindow: scanWindow,
+              onDetect: (response) {
+                final barcodes = response.barcodes.where((b) => b.rawValue != null).whereType<Barcode>().toList();
+                if (barcodes.isEmpty) {
+                  widget.onResult(FitatuBarcodeScannerResult(null, FitatuBarcodeFormat.unknown));
+                } else {
+                  final barcode = barcodes.first;
+                  final rawBarcode = barcode.rawValue;
 
-              return widget.overlayBuilder?.call(context, metrix) ?? PreviewOverlay(cameraPreviewMetrix: metrix);
-            },
-          ),
-        ],
-      );
-    });
+                  widget.onResult(
+                    FitatuBarcodeScannerResult(
+                      rawBarcode,
+                      switch (barcode.format) {
+                        BarcodeFormat.unknown => FitatuBarcodeFormat.unknown,
+                        BarcodeFormat.all => FitatuBarcodeFormat.all,
+                        BarcodeFormat.code128 => FitatuBarcodeFormat.code128,
+                        BarcodeFormat.code39 => FitatuBarcodeFormat.code39,
+                        BarcodeFormat.code93 => FitatuBarcodeFormat.code93,
+                        BarcodeFormat.codabar => FitatuBarcodeFormat.codabar,
+                        BarcodeFormat.dataMatrix => FitatuBarcodeFormat.dataMatrix,
+                        BarcodeFormat.ean13 => FitatuBarcodeFormat.ean13,
+                        BarcodeFormat.ean8 => FitatuBarcodeFormat.ean8,
+                        BarcodeFormat.itf => FitatuBarcodeFormat.itf,
+                        BarcodeFormat.qrCode => FitatuBarcodeFormat.qrCode,
+                        BarcodeFormat.upcA => FitatuBarcodeFormat.upcA,
+                        BarcodeFormat.upcE => FitatuBarcodeFormat.upcE,
+                        BarcodeFormat.pdf417 => FitatuBarcodeFormat.pdf417,
+                        BarcodeFormat.aztec => FitatuBarcodeFormat.aztec,
+                      },
+                    ),
+                  );
+                }
+              },
+            ),
+            Builder(
+              builder: (context) {
+                final metrix = CameraPreviewMetrix(
+                  cropRect: scanWindow,
+                  width: constraints.maxWidth,
+                  height: constraints.maxHeight,
+                  rotationDegrees: 90,
+                );
+
+                return widget.overlayBuilder?.call(context, metrix) ?? PreviewOverlay(cameraPreviewMetrix: metrix);
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override

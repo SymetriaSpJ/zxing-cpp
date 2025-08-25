@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../pigeon.dart';
 import '../scanner_preview_mixin.dart';
 import 'android/android_fitatu_scanner_preview.dart';
 import 'android/camera_permissions_guard.dart';
@@ -26,8 +25,8 @@ class FitatuBarcodeScannerPreview extends StatefulWidget {
   });
 
   final ScannerOptions options;
-  final ValueChanged<String?> onResult;
-  final ScannerErrorCallback? onError;
+  final FitatuBarcodeScannerResultCallback onResult;
+  final FitatuBarcodeScannerErrorCallback? onError;
   final VoidCallback? onChanged;
   final bool alwaysUseCommon;
   final PreviewOverlayBuilder? previewOverlayBuilder;
@@ -44,10 +43,7 @@ class FitatuBarcodeScannerPreviewState extends State<FitatuBarcodeScannerPreview
   void initState() {
     super.initState();
 
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   }
 
   @override
@@ -55,13 +51,13 @@ class FitatuBarcodeScannerPreviewState extends State<FitatuBarcodeScannerPreview
     late Widget preview;
 
     Widget getCommonScanner() => CommonFitatuScannerPreview(
-          key: _key,
-          onResult: widget.onResult,
-          options: widget.options,
-          onChanged: widget.onChanged,
-          onError: widget.onError,
-          overlayBuilder: widget.previewOverlayBuilder,
-        );
+      key: _key,
+      onResult: widget.onResult,
+      options: widget.options,
+      onChanged: widget.onChanged,
+      onError: widget.onError,
+      overlayBuilder: widget.previewOverlayBuilder,
+    );
 
     if (widget.alwaysUseCommon || kIsWeb) {
       preview = getCommonScanner();
@@ -80,10 +76,7 @@ class FitatuBarcodeScannerPreviewState extends State<FitatuBarcodeScannerPreview
       preview = getCommonScanner();
     }
 
-    return PreviewOverlayTheme(
-      themeData: widget.theme,
-      child: preview,
-    );
+    return PreviewOverlayTheme(themeData: widget.theme, child: preview);
   }
 
   @override

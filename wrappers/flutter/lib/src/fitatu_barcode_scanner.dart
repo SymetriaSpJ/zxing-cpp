@@ -1,26 +1,24 @@
-import 'package:fitatu_barcode_scanner/pigeon.dart';
+import 'package:fitatu_barcode_scanner/src/pigeons/fitatu_barcode_scanner.pigeon.dart';
 import 'package:flutter/foundation.dart';
 
-typedef ScannerErrorCallback = void Function(String? error);
+typedef FitatuBarcodeScannerErrorCallback = void Function(String? error);
+typedef FitatuBarcodeScannerResultCallback = void Function(FitatuBarcodeScannerResult result);
 
-class FitatuBarcodeScanner extends ChangeNotifier implements FitatuBarcodeScannerHostApi, FitatuBarcodeScannerFlutterApi {
-  FitatuBarcodeScanner({
-    required this.onResult,
-    required this.onError,
-  }) {
-    FitatuBarcodeScannerFlutterApi.setup(this);
+class FitatuBarcodeScanner extends FitatuBarcodeScannerHostApi with ChangeNotifier implements FitatuBarcodeScannerFlutterApi {
+  FitatuBarcodeScanner({required this.onResult, required this.onError}) {
+    FitatuBarcodeScannerFlutterApi.setUp(this);
   }
 
   final _api = FitatuBarcodeScannerHostApi();
 
-  final ValueChanged<String?> onResult;
-  final ScannerErrorCallback? onError;
+  final FitatuBarcodeScannerResultCallback onResult;
+  final FitatuBarcodeScannerErrorCallback? onError;
   var _isTorchEnabled = false;
   bool get isTorchEnabled => _isTorchEnabled;
   CameraConfig? _cameraConfig;
   CameraConfig? get cameraConfig => _cameraConfig;
-  String? _code;
-  String? get code => _code;
+  FitatuBarcodeScannerResult? _result;
+  FitatuBarcodeScannerResult? get result => _result;
   String? _error;
   String? get error => _error;
   CameraImage? _cameraImage;
@@ -54,10 +52,10 @@ class FitatuBarcodeScanner extends ChangeNotifier implements FitatuBarcodeScanne
   }
 
   @override
-  void result(String? code) {
-    _code = code;
+  void onScanResult(String? code, FitatuBarcodeFormat format) {
+    _result = FitatuBarcodeScannerResult(code, format);
+    onResult(_result!);
     _error = null;
-    onResult(code);
     notifyListeners();
   }
 
@@ -88,4 +86,18 @@ class FitatuBarcodeScanner extends ChangeNotifier implements FitatuBarcodeScanne
     _cameraImage = cameraImage;
     notifyListeners();
   }
+}
+
+@immutable
+class FitatuBarcodeScannerResult {
+  const FitatuBarcodeScannerResult(this.code, this.format);
+
+  final String? code;
+  final FitatuBarcodeFormat format;
+
+  @override
+  int get hashCode => Object.hash(code, format);
+
+  @override
+  bool operator ==(Object other) => other is FitatuBarcodeScannerResult && other.hashCode == hashCode;
 }

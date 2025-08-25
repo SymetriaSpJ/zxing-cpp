@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:fitatu_barcode_scanner/pigeon.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -28,7 +27,7 @@ class _MyAppState extends State<MyApp> {
   bool enableTorch = false;
   bool fullscreen = false;
   double cropPercent = 0.8;
-  String? code;
+  FitatuBarcodeScannerResult? result;
   String? error;
   late final _previewKey = GlobalKey<FitatuBarcodeScannerPreviewState>();
 
@@ -52,20 +51,22 @@ class _MyAppState extends State<MyApp> {
             options: options,
             alwaysUseCommon: alwaysUseCommon,
             onResult: (value) {
+              if (value.code == null) return;
               setState(() {
-                code = value;
+                result = value;
                 error = null;
               });
             },
             onError: (value) {
               setState(() {
-                code = null;
+                result = null;
                 error = value;
               });
             },
             onChanged: () {
               setState(() {
-                enableTorch = _previewKey.currentState?.isTorchEnabled() ?? false;
+                enableTorch =
+                    _previewKey.currentState?.isTorchEnabled() ?? false;
               });
             },
           ),
@@ -82,10 +83,23 @@ class _MyAppState extends State<MyApp> {
                     minHeight: 20,
                   ),
                   color: Colors.white.withValues(alpha: 0.5),
-                  child: Text(
-                    code ?? '<no results>',
-                    style: const TextStyle(color: Colors.black),
-                    textAlign: TextAlign.center,
+                  child: Column(
+                    children: [
+                      if (result == null)
+                        Text('<no results>')
+                      else if (result case final result?) ...[
+                        Text(
+                          result.code ?? '<no code>',
+                          style: const TextStyle(color: Colors.black),
+                          textAlign: TextAlign.center,
+                        ),
+                        Text(
+                          'format: ${result.format.name}',
+                          style: const TextStyle(color: Colors.black),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ),
@@ -114,11 +128,11 @@ class _MyAppState extends State<MyApp> {
                 setState(() {
                   enableTorch = !enableTorch;
                 });
-                _previewKey.currentState?.setTorchEnabled(isEnabled: enableTorch);
+                _previewKey.currentState?.setTorchEnabled(
+                  isEnabled: enableTorch,
+                );
               },
-              icon: Icon(
-                enableTorch ? Icons.flash_off : Icons.flash_on,
-              ),
+              icon: Icon(enableTorch ? Icons.flash_off : Icons.flash_on),
             ),
           ),
           Align(
@@ -137,11 +151,7 @@ class _MyAppState extends State<MyApp> {
     );
 
     return MaterialApp(
-      theme: ThemeData(
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-        ),
-      ),
+      theme: ThemeData(iconTheme: const IconThemeData(color: Colors.white)),
       home: fullscreen
           ? preview
           : DefaultTabController(
@@ -171,7 +181,11 @@ class _MyAppState extends State<MyApp> {
                           SwitchListTile(
                             value: alwaysUseCommon,
                             title: const Text('alwaysUseCommon'),
-                            onChanged: isAndroid ? (value) => setState(() => alwaysUseCommon = !alwaysUseCommon) : null,
+                            onChanged: isAndroid
+                                ? (value) => setState(
+                                    () => alwaysUseCommon = !alwaysUseCommon,
+                                  )
+                                : null,
                             subtitle: !isAndroid
                                 ? const Text(
                                     'Options is available only on Android device',
@@ -181,22 +195,26 @@ class _MyAppState extends State<MyApp> {
                           SwitchListTile(
                             value: tryHarder,
                             title: const Text('tryHarder'),
-                            onChanged: (value) => setState(() => tryHarder = !tryHarder),
+                            onChanged: (value) =>
+                                setState(() => tryHarder = !tryHarder),
                           ),
                           SwitchListTile(
                             value: tryRotate,
                             title: const Text('tryRotate'),
-                            onChanged: (value) => setState(() => tryRotate = !tryRotate),
+                            onChanged: (value) =>
+                                setState(() => tryRotate = !tryRotate),
                           ),
                           SwitchListTile(
                             value: tryInvert,
                             title: const Text('tryInvert'),
-                            onChanged: (value) => setState(() => tryInvert = !tryInvert),
+                            onChanged: (value) =>
+                                setState(() => tryInvert = !tryInvert),
                           ),
                           SwitchListTile(
                             value: qrCode,
                             title: const Text('qrCode'),
-                            onChanged: (value) => setState(() => qrCode = !qrCode),
+                            onChanged: (value) =>
+                                setState(() => qrCode = !qrCode),
                           ),
                           Slider(
                             value: cropPercent,

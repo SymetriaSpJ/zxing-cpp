@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:fitatu_barcode_scanner/fitatu_barcode_scanner.dart';
-import 'package:fitatu_barcode_scanner/pigeon.dart';
 import 'package:flutter/material.dart';
 
 import '../../scanner_preview_mixin.dart';
@@ -17,8 +16,8 @@ class AndroidFitatuScannerPreview extends StatefulWidget {
   });
 
   final ScannerOptions options;
-  final ValueChanged<String?> onResult;
-  final ScannerErrorCallback? onError;
+  final FitatuBarcodeScannerResultCallback onResult;
+  final FitatuBarcodeScannerErrorCallback? onError;
   final VoidCallback? onChanged;
   final PreviewOverlayBuilder? overlayBuilder;
 
@@ -107,7 +106,7 @@ class AndroidFitatuScannerPreviewState extends State<AndroidFitatuScannerPreview
                     cameraPreviewMetrix: metrix,
                   );
             },
-          )
+          ),
       ],
     );
   }
