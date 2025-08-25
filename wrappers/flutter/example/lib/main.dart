@@ -65,7 +65,8 @@ class _MyAppState extends State<MyApp> {
             },
             onChanged: () {
               setState(() {
-                enableTorch = _previewKey.currentState?.isTorchEnabled() ?? false;
+                enableTorch =
+                    _previewKey.currentState?.isTorchEnabled() ?? false;
               });
             },
           ),
@@ -77,7 +78,10 @@ class _MyAppState extends State<MyApp> {
                 alignment: Alignment.topCenter,
                 child: Container(
                   margin: const EdgeInsets.all(16),
-                  constraints: const BoxConstraints(minWidth: 200, minHeight: 20),
+                  constraints: const BoxConstraints(
+                    minWidth: 200,
+                    minHeight: 20,
+                  ),
                   color: Colors.white.withValues(alpha: 0.5),
                   child: Column(
                     children: [
@@ -103,7 +107,10 @@ class _MyAppState extends State<MyApp> {
                 alignment: Alignment.topCenter,
                 child: Container(
                   margin: const EdgeInsets.all(16),
-                  constraints: const BoxConstraints(minWidth: 200, minHeight: 20),
+                  constraints: const BoxConstraints(
+                    minWidth: 200,
+                    minHeight: 20,
+                  ),
                   color: Colors.white.withValues(alpha: 0.5),
                   child: Text(
                     error ?? '<no errors>',
@@ -121,7 +128,9 @@ class _MyAppState extends State<MyApp> {
                 setState(() {
                   enableTorch = !enableTorch;
                 });
-                _previewKey.currentState?.setTorchEnabled(isEnabled: enableTorch);
+                _previewKey.currentState?.setTorchEnabled(
+                  isEnabled: enableTorch,
+                );
               },
               icon: Icon(enableTorch ? Icons.flash_off : Icons.flash_on),
             ),
@@ -162,35 +171,50 @@ class _MyAppState extends State<MyApp> {
                     if (started)
                       preview
                     else
-                      MaterialButton(child: const Text('Tap to start'), onPressed: () => setState(() => started = true)),
+                      MaterialButton(
+                        child: const Text('Tap to start'),
+                        onPressed: () => setState(() => started = true),
+                      ),
                     SingleChildScrollView(
                       child: Column(
                         children: [
                           SwitchListTile(
                             value: alwaysUseCommon,
                             title: const Text('alwaysUseCommon'),
-                            onChanged: isAndroid ? (value) => setState(() => alwaysUseCommon = !alwaysUseCommon) : null,
-                            subtitle: !isAndroid ? const Text('Options is available only on Android device') : null,
+                            onChanged: isAndroid
+                                ? (value) => setState(
+                                    () => alwaysUseCommon = !alwaysUseCommon,
+                                  )
+                                : null,
+                            subtitle: !isAndroid
+                                ? const Text(
+                                    'Options is available only on Android device',
+                                  )
+                                : null,
                           ),
                           SwitchListTile(
                             value: tryHarder,
                             title: const Text('tryHarder'),
-                            onChanged: (value) => setState(() => tryHarder = !tryHarder),
+                            onChanged: (value) =>
+                                setState(() => tryHarder = !tryHarder),
                           ),
                           SwitchListTile(
                             value: tryRotate,
                             title: const Text('tryRotate'),
-                            onChanged: (value) => setState(() => tryRotate = !tryRotate),
+                            onChanged: (value) =>
+                                setState(() => tryRotate = !tryRotate),
                           ),
                           SwitchListTile(
                             value: tryInvert,
                             title: const Text('tryInvert'),
-                            onChanged: (value) => setState(() => tryInvert = !tryInvert),
+                            onChanged: (value) =>
+                                setState(() => tryInvert = !tryInvert),
                           ),
                           SwitchListTile(
                             value: qrCode,
                             title: const Text('qrCode'),
-                            onChanged: (value) => setState(() => qrCode = !qrCode),
+                            onChanged: (value) =>
+                                setState(() => qrCode = !qrCode),
                           ),
                           Slider(
                             value: cropPercent,

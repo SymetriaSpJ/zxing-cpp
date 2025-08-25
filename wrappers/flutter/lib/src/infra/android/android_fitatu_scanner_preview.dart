@@ -37,8 +37,10 @@ class AndroidFitatuScannerPreviewState extends State<AndroidFitatuScannerPreview
   @override
   void initState() {
     super.initState();
-    _scanner = FitatuBarcodeScanner(onResult: (code) => widget.onResult(code), onError: (e) => widget.onError?.call(e))
-      ..addListener(_scannerListener);
+    _scanner = FitatuBarcodeScanner(
+      onResult: (code) => widget.onResult(code),
+      onError: (e) => widget.onError?.call(e),
+    )..addListener(_scannerListener);
     _scanner.init(widget.options);
   }
 
@@ -74,7 +76,10 @@ class AndroidFitatuScannerPreviewState extends State<AndroidFitatuScannerPreview
                     min(cameraConfig.previewHeight, cameraConfig.previewWidth).toDouble(),
                     max(cameraConfig.previewHeight, cameraConfig.previewWidth).toDouble(),
                   ),
-                  child: Texture(key: ValueKey(cameraConfig), textureId: cameraConfig.textureId),
+                  child: Texture(
+                    key: ValueKey(cameraConfig),
+                    textureId: cameraConfig.textureId,
+                  ),
                 ),
               ),
             ),
@@ -96,7 +101,10 @@ class AndroidFitatuScannerPreviewState extends State<AndroidFitatuScannerPreview
                 rotationDegrees: cameraImage.rotationDegrees,
               );
 
-              return widget.overlayBuilder?.call(context, metrix) ?? PreviewOverlay(cameraPreviewMetrix: metrix);
+              return widget.overlayBuilder?.call(context, metrix) ??
+                  PreviewOverlay(
+                    cameraPreviewMetrix: metrix,
+                  );
             },
           ),
       ],

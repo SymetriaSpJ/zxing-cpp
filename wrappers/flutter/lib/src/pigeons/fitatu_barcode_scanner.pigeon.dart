@@ -24,59 +24,77 @@ List<Object?> wrapResponse({Object? result, PlatformException? error, bool empty
   }
   return <Object?>[error.code, error.message, error.details];
 }
+
 bool _deepEquals(Object? a, Object? b) {
   if (a is List && b is List) {
-    return a.length == b.length &&
-        a.indexed
-        .every(((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]));
+    return a.length == b.length && a.indexed.every(((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]));
   }
   if (a is Map && b is Map) {
-    return a.length == b.length && a.entries.every((MapEntry<Object?, Object?> entry) =>
-        (b as Map<Object?, Object?>).containsKey(entry.key) &&
-        _deepEquals(entry.value, b[entry.key]));
+    return a.length == b.length &&
+        a.entries.every(
+          (MapEntry<Object?, Object?> entry) =>
+              (b as Map<Object?, Object?>).containsKey(entry.key) && _deepEquals(entry.value, b[entry.key]),
+        );
   }
   return a == b;
 }
 
-
 enum FitatuBarcodeFormat {
   /// Aztec 2D barcode format.
   aztec,
+
   /// Codabar 1D barcode format, used in libraries, blood banks, parcels.
   codabar,
+
   /// Code 39 1D barcode format, used in automotive and defense industries.
   code39,
+
   /// Code 93 1D barcode format, compact and high-density, used in logistics.
   code93,
+
   /// Code 128 1D barcode format, high-density, used in shipping and packaging.
   code128,
+
   /// DataBar (RSS-14) 1D barcode format, used in retail and coupons.
   dataBar,
+
   /// DataBar Expanded 1D barcode format, stores more data, used for coupons.
   dataBarExpanded,
+
   /// Data Matrix 2D barcode format, used for marking small items.
   dataMatrix,
+
   /// EAN-8 1D barcode format, short version of EAN-13, used on small packages.
   ean8,
+
   /// EAN-13 1D barcode format, used worldwide for retail products.
   ean13,
+
   /// ITF (Interleaved 2 of 5) 1D barcode format, used on cartons and packaging.
   itf,
+
   /// MaxiCode 2D barcode format, used by UPS for package tracking.
   maxicode,
+
   /// PDF417 2D barcode format, used for transport, identification cards.
   pdf417,
+
   /// QR Code 2D barcode format, widely used for URLs, payments, and info.
   qrCode,
+
   /// Micro QR Code 2D barcode format, smaller version of QR Code.
   microQrCode,
+
   /// UPC-A 1D barcode format, used for retail products in North America.
   upcA,
+
   /// UPC-E 1D barcode format, compressed version of UPC-A for small packages.
   upcE,
+
   /// Special value that maps to the `BarcodeFormat.all` enum from the mobile_scanner package.
   /// See: https://pub.dev/documentation/mobile_scanner/latest/mobile_scanner/BarcodeFormat.html
   all,
+
   /// Unknown code format
   unknown,
 }
@@ -103,7 +121,8 @@ class CameraConfig {
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static CameraConfig decode(Object result) {
     result as List<Object?>;
@@ -128,8 +147,7 @@ class CameraConfig {
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => Object.hashAll(_toList())
-;
+  int get hashCode => Object.hashAll(_toList());
 }
 
 class CameraImage {
@@ -158,7 +176,8 @@ class CameraImage {
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static CameraImage decode(Object result) {
     result as List<Object?>;
@@ -184,8 +203,7 @@ class CameraImage {
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => Object.hashAll(_toList())
-;
+  int get hashCode => Object.hashAll(_toList());
 }
 
 class CropRect {
@@ -214,7 +232,8 @@ class CropRect {
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static CropRect decode(Object result) {
     result as List<Object?>;
@@ -240,8 +259,7 @@ class CropRect {
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => Object.hashAll(_toList())
-;
+  int get hashCode => Object.hashAll(_toList());
 }
 
 class ScannerOptions {
@@ -282,7 +300,8 @@ class ScannerOptions {
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static ScannerOptions decode(Object result) {
     result as List<Object?>;
@@ -311,10 +330,8 @@ class ScannerOptions {
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => Object.hashAll(_toList())
-;
+  int get hashCode => Object.hashAll(_toList());
 }
-
 
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
@@ -323,19 +340,19 @@ class _PigeonCodec extends StandardMessageCodec {
     if (value is int) {
       buffer.putUint8(4);
       buffer.putInt64(value);
-    }    else if (value is FitatuBarcodeFormat) {
+    } else if (value is FitatuBarcodeFormat) {
       buffer.putUint8(129);
       writeValue(buffer, value.index);
-    }    else if (value is CameraConfig) {
+    } else if (value is CameraConfig) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
-    }    else if (value is CameraImage) {
+    } else if (value is CameraImage) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    }    else if (value is CropRect) {
+    } else if (value is CropRect) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
-    }    else if (value is ScannerOptions) {
+    } else if (value is ScannerOptions) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
     } else {
@@ -346,16 +363,16 @@ class _PigeonCodec extends StandardMessageCodec {
   @override
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
-      case 129: 
+      case 129:
         final int? value = readValue(buffer) as int?;
         return value == null ? null : FitatuBarcodeFormat.values[value];
-      case 130: 
+      case 130:
         return CameraConfig.decode(readValue(buffer)!);
-      case 131: 
+      case 131:
         return CameraImage.decode(readValue(buffer)!);
-      case 132: 
+      case 132:
         return CropRect.decode(readValue(buffer)!);
-      case 133: 
+      case 133:
         return ScannerOptions.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -368,8 +385,8 @@ class FitatuBarcodeScannerHostApi {
   /// available for dependency injection.  If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
   FitatuBarcodeScannerHostApi({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
-      : pigeonVar_binaryMessenger = binaryMessenger,
-        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+    : pigeonVar_binaryMessenger = binaryMessenger,
+      pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
 
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
@@ -377,15 +394,15 @@ class FitatuBarcodeScannerHostApi {
   final String pigeonVar_messageChannelSuffix;
 
   Future<void> init(ScannerOptions options) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerHostApi.init$pigeonVar_messageChannelSuffix';
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerHostApi.init$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[options]);
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_sendFuture as List<Object?>?;
+    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -400,15 +417,15 @@ class FitatuBarcodeScannerHostApi {
   }
 
   Future<void> release() async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerHostApi.release$pigeonVar_messageChannelSuffix';
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerHostApi.release$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_sendFuture as List<Object?>?;
+    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -423,15 +440,15 @@ class FitatuBarcodeScannerHostApi {
   }
 
   Future<void> setTorchEnabled(bool isEnabled) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerHostApi.setTorchEnabled$pigeonVar_messageChannelSuffix';
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerHostApi.setTorchEnabled$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[isEnabled]);
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_sendFuture as List<Object?>?;
+    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -459,18 +476,26 @@ abstract class FitatuBarcodeScannerFlutterApi {
 
   void onScanError(String error);
 
-  static void setUp(FitatuBarcodeScannerFlutterApi? api, {BinaryMessenger? binaryMessenger, String messageChannelSuffix = '',}) {
+  static void setUp(
+    FitatuBarcodeScannerFlutterApi? api, {
+    BinaryMessenger? binaryMessenger,
+    String messageChannelSuffix = '',
+  }) {
     messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
     {
       final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-          'dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onTextureChanged$messageChannelSuffix', pigeonChannelCodec,
-          binaryMessenger: binaryMessenger);
+        'dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onTextureChanged$messageChannelSuffix',
+        pigeonChannelCodec,
+        binaryMessenger: binaryMessenger,
+      );
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
       } else {
         pigeonVar_channel.setMessageHandler((Object? message) async {
-          assert(message != null,
-          'Argument for dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onTextureChanged was null.');
+          assert(
+            message != null,
+            'Argument for dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onTextureChanged was null.',
+          );
           final List<Object?> args = (message as List<Object?>?)!;
           final CameraConfig? arg_cameraConfig = (args[0] as CameraConfig?);
           try {
@@ -478,109 +503,143 @@ abstract class FitatuBarcodeScannerFlutterApi {
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
-          }          catch (e) {
-            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          } catch (e) {
+            return wrapResponse(
+              error: PlatformException(code: 'error', message: e.toString()),
+            );
           }
         });
       }
     }
     {
       final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-          'dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onTorchStateChanged$messageChannelSuffix', pigeonChannelCodec,
-          binaryMessenger: binaryMessenger);
+        'dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onTorchStateChanged$messageChannelSuffix',
+        pigeonChannelCodec,
+        binaryMessenger: binaryMessenger,
+      );
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
       } else {
         pigeonVar_channel.setMessageHandler((Object? message) async {
-          assert(message != null,
-          'Argument for dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onTorchStateChanged was null.');
+          assert(
+            message != null,
+            'Argument for dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onTorchStateChanged was null.',
+          );
           final List<Object?> args = (message as List<Object?>?)!;
           final bool? arg_isEnabled = (args[0] as bool?);
-          assert(arg_isEnabled != null,
-              'Argument for dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onTorchStateChanged was null, expected non-null bool.');
+          assert(
+            arg_isEnabled != null,
+            'Argument for dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onTorchStateChanged was null, expected non-null bool.',
+          );
           try {
             api.onTorchStateChanged(arg_isEnabled!);
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
-          }          catch (e) {
-            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          } catch (e) {
+            return wrapResponse(
+              error: PlatformException(code: 'error', message: e.toString()),
+            );
           }
         });
       }
     }
     {
       final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-          'dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onCameraImage$messageChannelSuffix', pigeonChannelCodec,
-          binaryMessenger: binaryMessenger);
+        'dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onCameraImage$messageChannelSuffix',
+        pigeonChannelCodec,
+        binaryMessenger: binaryMessenger,
+      );
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
       } else {
         pigeonVar_channel.setMessageHandler((Object? message) async {
-          assert(message != null,
-          'Argument for dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onCameraImage was null.');
+          assert(
+            message != null,
+            'Argument for dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onCameraImage was null.',
+          );
           final List<Object?> args = (message as List<Object?>?)!;
           final CameraImage? arg_cameraImage = (args[0] as CameraImage?);
-          assert(arg_cameraImage != null,
-              'Argument for dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onCameraImage was null, expected non-null CameraImage.');
+          assert(
+            arg_cameraImage != null,
+            'Argument for dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onCameraImage was null, expected non-null CameraImage.',
+          );
           try {
             api.onCameraImage(arg_cameraImage!);
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
-          }          catch (e) {
-            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          } catch (e) {
+            return wrapResponse(
+              error: PlatformException(code: 'error', message: e.toString()),
+            );
           }
         });
       }
     }
     {
       final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-          'dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onScanResult$messageChannelSuffix', pigeonChannelCodec,
-          binaryMessenger: binaryMessenger);
+        'dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onScanResult$messageChannelSuffix',
+        pigeonChannelCodec,
+        binaryMessenger: binaryMessenger,
+      );
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
       } else {
         pigeonVar_channel.setMessageHandler((Object? message) async {
-          assert(message != null,
-          'Argument for dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onScanResult was null.');
+          assert(
+            message != null,
+            'Argument for dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onScanResult was null.',
+          );
           final List<Object?> args = (message as List<Object?>?)!;
           final String? arg_code = (args[0] as String?);
           final FitatuBarcodeFormat? arg_format = (args[1] as FitatuBarcodeFormat?);
-          assert(arg_format != null,
-              'Argument for dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onScanResult was null, expected non-null FitatuBarcodeFormat.');
+          assert(
+            arg_format != null,
+            'Argument for dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onScanResult was null, expected non-null FitatuBarcodeFormat.',
+          );
           try {
             api.onScanResult(arg_code, arg_format!);
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
-          }          catch (e) {
-            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          } catch (e) {
+            return wrapResponse(
+              error: PlatformException(code: 'error', message: e.toString()),
+            );
           }
         });
       }
     }
     {
       final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-          'dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onScanError$messageChannelSuffix', pigeonChannelCodec,
-          binaryMessenger: binaryMessenger);
+        'dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onScanError$messageChannelSuffix',
+        pigeonChannelCodec,
+        binaryMessenger: binaryMessenger,
+      );
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
       } else {
         pigeonVar_channel.setMessageHandler((Object? message) async {
-          assert(message != null,
-          'Argument for dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onScanError was null.');
+          assert(
+            message != null,
+            'Argument for dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onScanError was null.',
+          );
           final List<Object?> args = (message as List<Object?>?)!;
           final String? arg_error = (args[0] as String?);
-          assert(arg_error != null,
-              'Argument for dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onScanError was null, expected non-null String.');
+          assert(
+            arg_error != null,
+            'Argument for dev.flutter.pigeon.fitatu_barcode_scanner.FitatuBarcodeScannerFlutterApi.onScanError was null, expected non-null String.',
+          );
           try {
             api.onScanError(arg_error!);
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
-          }          catch (e) {
-            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          } catch (e) {
+            return wrapResponse(
+              error: PlatformException(code: 'error', message: e.toString()),
+            );
           }
         });
       }
