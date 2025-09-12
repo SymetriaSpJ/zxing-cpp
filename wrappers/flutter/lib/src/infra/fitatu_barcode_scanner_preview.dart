@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:fitatu_barcode_scanner/fitatu_barcode_scanner.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -15,20 +14,20 @@ typedef PreviewOverlayBuilder = Widget Function(BuildContext context, CameraPrev
 class FitatuBarcodeScannerPreview extends StatefulWidget {
   const FitatuBarcodeScannerPreview({
     super.key,
-    required this.onResult,
     required this.options,
+    required this.onResult,
+    this.commonScannerController,
     this.onError,
     this.onChanged,
-    this.alwaysUseCommon = false,
     this.previewOverlayBuilder,
     this.theme = const PreviewOverlayThemeData(),
   });
 
+  final CommonScannerController? commonScannerController;
   final ScannerOptions options;
   final FitatuBarcodeScannerResultCallback onResult;
   final FitatuBarcodeScannerErrorCallback? onError;
   final VoidCallback? onChanged;
-  final bool alwaysUseCommon;
   final PreviewOverlayBuilder? previewOverlayBuilder;
   final PreviewOverlayThemeData theme;
 
@@ -50,17 +49,16 @@ class FitatuBarcodeScannerPreviewState extends State<FitatuBarcodeScannerPreview
   Widget build(BuildContext context) {
     late Widget preview;
 
-    Widget getCommonScanner() => CommonFitatuScannerPreview(
-      key: _key,
-      onResult: widget.onResult,
-      options: widget.options,
-      onChanged: widget.onChanged,
-      onError: widget.onError,
-      overlayBuilder: widget.previewOverlayBuilder,
-    );
-
-    if (widget.alwaysUseCommon || kIsWeb) {
-      preview = getCommonScanner();
+    if (widget.commonScannerController case final controller?) {
+      preview = CommonFitatuScannerPreview(
+        key: _key,
+        controller: controller,
+        onResult: widget.onResult,
+        options: widget.options,
+        onChanged: widget.onChanged,
+        onError: widget.onError,
+        overlayBuilder: widget.previewOverlayBuilder,
+      );
     } else if (Platform.isAndroid) {
       preview = CameraPermissionsGuard(
         child: AndroidFitatuScannerPreview(
@@ -73,7 +71,9 @@ class FitatuBarcodeScannerPreviewState extends State<FitatuBarcodeScannerPreview
         ),
       );
     } else {
-      preview = getCommonScanner();
+      throw UnimplementedError(
+        'Unsupported platform - ${Platform.operatingSystem}. Use `commonScannerControler`',
+      );
     }
 
     return PreviewOverlayTheme(themeData: widget.theme, child: preview);

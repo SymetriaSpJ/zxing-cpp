@@ -1,3 +1,6 @@
+## 5.0.0
+ TODO
+
 ## 4.0.0
  * Renamed `FitatuBarcodeScannerFlutterApi.result` to `FitatuBarcodeScannerFlutterApi.onScanResult`
  * The `FitatuBarcodeScannerFlutterApi.onScanResult` now returns `FitatuBarcodeScannerResult` instead of `String`. It contains additional informations like `format`
