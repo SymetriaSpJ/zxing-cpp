@@ -13,6 +13,8 @@ class CameraPreviewMetrix {
     required this.rotationDegrees,
   });
 
+  bool get hasSize => width > 0 && height > 0;
+
   @override
   int get hashCode => Object.hash(cropRect, width, height, rotationDegrees);
 

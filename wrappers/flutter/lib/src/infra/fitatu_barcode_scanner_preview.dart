@@ -1,30 +1,19 @@
-import 'dart:io';
-
-import 'package:fitatu_barcode_scanner/fitatu_barcode_scanner.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-
-import '../scanner_preview_mixin.dart';
-import 'android/android_fitatu_scanner_preview.dart';
-import 'android/camera_permissions_guard.dart';
-import 'common/common_fitatu_scanner_preview.dart';
+part of '../fitatu_barcode_scanner.dart';
 
 typedef PreviewOverlayBuilder = Widget Function(BuildContext context, CameraPreviewMetrix metrix);
 
 class FitatuBarcodeScannerPreview extends StatefulWidget {
   const FitatuBarcodeScannerPreview({
     super.key,
-    required this.options,
+    required this.controllerLease,
     required this.onResult,
-    this.commonScannerController,
     this.onError,
     this.onChanged,
     this.previewOverlayBuilder,
     this.theme = const PreviewOverlayThemeData(),
   });
 
-  final CommonScannerController? commonScannerController;
-  final ScannerOptions options;
+  final ResourceLease<FitatuBarcodeScannerController> controllerLease;
   final FitatuBarcodeScannerResultCallback onResult;
   final FitatuBarcodeScannerErrorCallback? onError;
   final VoidCallback? onChanged;
@@ -41,7 +30,6 @@ class FitatuBarcodeScannerPreviewState extends State<FitatuBarcodeScannerPreview
   @override
   void initState() {
     super.initState();
-
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   }
 
@@ -49,34 +37,38 @@ class FitatuBarcodeScannerPreviewState extends State<FitatuBarcodeScannerPreview
   Widget build(BuildContext context) {
     late Widget preview;
 
-    if (widget.commonScannerController case final controller?) {
-      preview = CommonFitatuScannerPreview(
-        key: _key,
-        controller: controller,
-        onResult: widget.onResult,
-        options: widget.options,
-        onChanged: widget.onChanged,
-        onError: widget.onError,
-        overlayBuilder: widget.previewOverlayBuilder,
-      );
-    } else if (Platform.isAndroid) {
-      preview = CameraPermissionsGuard(
-        child: AndroidFitatuScannerPreview(
-          key: _key,
-          onResult: widget.onResult,
-          options: widget.options,
-          onChanged: widget.onChanged,
-          onError: widget.onError,
-          overlayBuilder: widget.previewOverlayBuilder,
-        ),
-      );
-    } else {
-      throw UnimplementedError(
-        'Unsupported platform - ${Platform.operatingSystem}. Use `commonScannerControler`',
-      );
-    }
+    return FutureBuilder(
+      future: widget.controllerLease.resource,
+      builder: (context, snapshot) {
+        final controller = snapshot.data;
 
-    return PreviewOverlayTheme(themeData: widget.theme, child: preview);
+        if (Platform.isAndroid) {
+          preview = CameraPermissionsGuard(
+            child: _AndroidFitatuScannerPreview(
+              key: _key,
+              controller: controller != null ? controller as _AndroidBarcodeScanner : null,
+              onResult: widget.onResult,
+              onChanged: widget.onChanged,
+              onError: widget.onError,
+              overlayBuilder: widget.previewOverlayBuilder,
+            ),
+          );
+        } else if (Platform.isIOS) {
+          preview = _CommonFitatuScannerPreview(
+            key: _key,
+            controller: controller != null ? controller as _IOSBarcodeScanner : null,
+            onResult: widget.onResult,
+            onChanged: widget.onChanged,
+            onError: widget.onError,
+            overlayBuilder: widget.previewOverlayBuilder,
+          );
+        } else {
+          throw FitatuBarcodeScannerException.unsupportedPlatform();
+        }
+
+        return PreviewOverlayTheme(themeData: widget.theme, child: preview);
+      },
+    );
   }
 
   @override

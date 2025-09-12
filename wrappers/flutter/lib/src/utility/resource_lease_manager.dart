@@ -7,12 +7,7 @@ typedef ResourceReleaser<T> = Future<void> Function(T resource);
 typedef ResourceLogger = void Function(String message, Object? error, StackTrace? stackTrace);
 
 class ResourceLeaseManager {
-  ResourceLeaseManager({
-    ResourceLogger? logger,
-    this.createTimeout,
-    this.releaseTimeout,
-    this.maxQueueLength,
-  }) : _logger = logger;
+  ResourceLeaseManager({ResourceLogger? logger, this.createTimeout, this.releaseTimeout, this.maxQueueLength}) : _logger = logger;
 
   final _leases = ListQueue<ResourceLease>();
   final ResourceLogger? _logger;
@@ -28,10 +23,7 @@ class ResourceLeaseManager {
     dev.log(message, error: error, stackTrace: stackTrace);
   }
 
-  ResourceLease<T> lease<T extends Object>({
-    required ResourceFactory<T> create,
-    required ResourceReleaser<T> release,
-  }) {
+  ResourceLease<T> lease<T extends Object>({required ResourceFactory<T> create, required ResourceReleaser<T> release}) {
     _log('$ResourceLeaseManager.lease<$T>');
     final lease = ResourceLease<T>._(create, release, this);
     if (_leases.isEmpty) {
@@ -84,11 +76,7 @@ class ResourceLeaseManager {
 }
 
 final class ResourceLease<T extends Object> {
-  ResourceLease._(
-    this._createCallback,
-    this._releaseCallback,
-    this._parent,
-  ) : _id = Object().hashCode;
+  ResourceLease._(this._createCallback, this._releaseCallback, this._parent) : _id = Object().hashCode;
 
   final int _id;
   final ResourceLeaseManager _parent;
@@ -116,17 +104,15 @@ final class ResourceLease<T extends Object> {
 
     const tag = '_openResource';
 
-    final value = _value = await _withTimeout(
-      _measureTime(_createCallback(), tag),
-      _parent.createTimeout,
-      tag,
-    );
+    final value = _value = await _withTimeout(_measureTime(_createCallback(), tag), _parent.createTimeout, tag);
 
     if (value != null) {
       _completer.complete(value);
     } else {
       _isTimedOut = true;
-      _completer.completeError(ResourceLeaseManagerException('Timeout - $this'));
+      final error = ResourceLeaseManagerException('Timeout - $this');
+      _parent._log('_openResource timeout - $this', error, StackTrace.current);
+      _completer.completeError(error);
     }
   }
 
@@ -136,22 +122,16 @@ final class ResourceLease<T extends Object> {
     try {
       if (value case final value?) {
         _parent._log('Releasing resource - $this ...');
-        await _withTimeout(
-          _measureTime(_releaseCallback(value), tag),
-          _parent.releaseTimeout,
-          tag,
-        );
+        await _withTimeout(_measureTime(_releaseCallback(value), tag), _parent.releaseTimeout, tag);
       } else {
         _parent._log('✅ Lease released before resource was created - $this');
       }
     } catch (e, st) {
-      _parent._log(
-        'Error occurred while releasing lease - $this. This can lead to unexpected behaviours',
-        e,
-        st,
-      );
+      _parent._log('Error occurred while releasing lease - $this. This can lead to unexpected behaviours', e, st);
     } finally {
-      _releaseCompleter.complete();
+      if (!isReleased) {
+        _releaseCompleter.complete();
+      }
     }
   }
 
@@ -160,15 +140,11 @@ final class ResourceLease<T extends Object> {
     return _releaseCompleter.future;
   }
 
-  Future<R?> _withTimeout<R>(
-    Future<R> future,
-    Duration? timeout,
-    String tag,
-  ) async {
+  Future<R?> _withTimeout<R>(Future<R> future, Duration? timeout, String tag) async {
     if (timeout == null) return future;
 
     final watchdogTimer = Timer(timeout * 0.75, () {
-      _parent._log('⚠️ Operation is close to reach the timeout - #$tag');
+      _parent._log('⚠️ Operation is close to reach the timeout - $this - #$tag');
     });
 
     try {
@@ -186,7 +162,7 @@ final class ResourceLease<T extends Object> {
       return await future;
     } finally {
       stopwatch.stop();
-      _parent._log('⏱️ Elapsed - ${stopwatch.elapsed} - #$tag');
+      _parent._log('⏱️ Elapsed - ${stopwatch.elapsed} - $this - #$tag');
     }
   }
 

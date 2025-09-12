@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 import 'package:fitatu_barcode_scanner/fitatu_barcode_scanner.dart';
@@ -14,7 +12,6 @@ final class ScanExample extends StatefulWidget {
 }
 
 class _ScanExampleState extends State<ScanExample> {
-  bool useCommon = false;
   bool tryHarder = false;
   bool tryRotate = true;
   bool tryInvert = true;
@@ -25,54 +22,44 @@ class _ScanExampleState extends State<ScanExample> {
   double cropPercent = 0.8;
   FitatuBarcodeScannerResult? result;
   String? error;
-  ResourceLease<MobileScannerController>? commonScannerController;
+  late final ResourceLease<FitatuBarcodeScannerController> controllerLease;
   late final _previewKey = GlobalKey<FitatuBarcodeScannerPreviewState>();
-
-  void setCommonController() {
-    commonScannerController = _resourceLease.lease(
-      create: () => Future.value(MobileScannerController(autoStart: false)),
-      release: (controller) => controller.dispose(),
-    );
-  }
-
-  void disposeCommonController() {
-    final controller = commonScannerController;
-    commonScannerController = null;
-    controller?.release();
-  }
 
   @override
   void initState() {
     super.initState();
-    if (Platform.isIOS) {
-      setCommonController();
-    }
+    controllerLease = _resourceLease.lease(
+      create: () => Future.value(
+        FitatuBarcodeScannerController.platform(
+          ScannerOptions(
+            tryHarder: tryHarder,
+            tryRotate: tryRotate,
+            tryInvert: tryInvert,
+            qrCode: qrCode,
+            cropPercent: cropPercent,
+            scanDelay: 50,
+            scanDelaySuccess: 300,
+          ),
+        ),
+      ),
+      release: (controller) => controller.disposeController(),
+    );
   }
 
   @override
   void dispose() {
     super.dispose();
-    disposeCommonController();
+    controllerLease.release();
   }
 
   @override
   Widget build(BuildContext context) {
-    final options = ScannerOptions(
-      tryHarder: tryHarder,
-      tryRotate: tryRotate,
-      tryInvert: tryInvert,
-      qrCode: qrCode,
-      cropPercent: cropPercent,
-      scanDelay: 50,
-      scanDelaySuccess: 300,
-    );
     final preview = Material(
       child: Stack(
         children: [
           FitatuBarcodeScannerPreview(
             key: _previewKey,
-            options: options,
-            commonScannerController: commonScannerController,
+            controllerLease: controllerLease,
             onResult: (value) {
               if (value.code == null) return;
               setState(() {
@@ -187,21 +174,6 @@ class _ScanExampleState extends State<ScanExample> {
                   SingleChildScrollView(
                     child: Column(
                       children: [
-                        if (!Platform.isIOS)
-                          SwitchListTile(
-                            value: useCommon,
-                            title: const Text('useCommon'),
-                            onChanged: (value) {
-                              setState(() {
-                                useCommon = !useCommon;
-                                if (useCommon) {
-                                  setCommonController();
-                                } else {
-                                  disposeCommonController();
-                                }
-                              });
-                            },
-                          ),
                         SwitchListTile(
                           value: tryHarder,
                           title: const Text('tryHarder'),

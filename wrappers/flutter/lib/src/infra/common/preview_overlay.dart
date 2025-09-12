@@ -41,13 +41,17 @@ class _PreviewOverlayState extends State<PreviewOverlay> with SingleTickerProvid
     return AnimatedBuilder(
       animation: animationController,
       builder: (context, child) {
-        return CustomPaint(
-          painter: _PreviewOverlayPainter(
-            metrix: widget.cameraPreviewMetrix,
-            theme: currentTheme,
-            animation: animationController.value,
-          ),
-        );
+        if (widget.cameraPreviewMetrix.hasSize) {
+          return CustomPaint(
+            painter: _PreviewOverlayPainter(
+              metrix: widget.cameraPreviewMetrix,
+              theme: currentTheme,
+              animation: animationController.value,
+            ),
+          );
+        }
+
+        return const SizedBox.shrink();
       },
     );
   }

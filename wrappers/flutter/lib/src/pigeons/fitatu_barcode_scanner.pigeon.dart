@@ -9,10 +9,7 @@ import 'package:flutter/foundation.dart' show ReadBuffer, WriteBuffer;
 import 'package:flutter/services.dart';
 
 PlatformException _createConnectionError(String channelName) {
-  return PlatformException(
-    code: 'channel-error',
-    message: 'Unable to establish connection on channel: "$channelName".',
-  );
+  return PlatformException(code: 'channel-error', message: 'Unable to establish connection on channel: "$channelName".');
 }
 
 List<Object?> wrapResponse({Object? result, PlatformException? error, bool empty = false}) {
@@ -100,11 +97,7 @@ enum FitatuBarcodeFormat {
 }
 
 class CameraConfig {
-  CameraConfig({
-    required this.textureId,
-    required this.previewWidth,
-    required this.previewHeight,
-  });
+  CameraConfig({required this.textureId, required this.previewWidth, required this.previewHeight});
 
   int textureId;
 
@@ -113,11 +106,7 @@ class CameraConfig {
   int previewHeight;
 
   List<Object?> _toList() {
-    return <Object?>[
-      textureId,
-      previewWidth,
-      previewHeight,
-    ];
+    return <Object?>[textureId, previewWidth, previewHeight];
   }
 
   Object encode() {
@@ -126,11 +115,7 @@ class CameraConfig {
 
   static CameraConfig decode(Object result) {
     result as List<Object?>;
-    return CameraConfig(
-      textureId: result[0]! as int,
-      previewWidth: result[1]! as int,
-      previewHeight: result[2]! as int,
-    );
+    return CameraConfig(textureId: result[0]! as int, previewWidth: result[1]! as int, previewHeight: result[2]! as int);
   }
 
   @override
@@ -151,12 +136,7 @@ class CameraConfig {
 }
 
 class CameraImage {
-  CameraImage({
-    required this.cropRect,
-    required this.width,
-    required this.height,
-    required this.rotationDegrees,
-  });
+  CameraImage({required this.cropRect, required this.width, required this.height, required this.rotationDegrees});
 
   CropRect cropRect;
 
@@ -167,12 +147,7 @@ class CameraImage {
   int rotationDegrees;
 
   List<Object?> _toList() {
-    return <Object?>[
-      cropRect,
-      width,
-      height,
-      rotationDegrees,
-    ];
+    return <Object?>[cropRect, width, height, rotationDegrees];
   }
 
   Object encode() {
@@ -207,12 +182,7 @@ class CameraImage {
 }
 
 class CropRect {
-  CropRect({
-    required this.left,
-    required this.top,
-    required this.right,
-    required this.bottom,
-  });
+  CropRect({required this.left, required this.top, required this.right, required this.bottom});
 
   int left;
 
@@ -223,12 +193,7 @@ class CropRect {
   int bottom;
 
   List<Object?> _toList() {
-    return <Object?>[
-      left,
-      top,
-      right,
-      bottom,
-    ];
+    return <Object?>[left, top, right, bottom];
   }
 
   Object encode() {
@@ -237,12 +202,7 @@ class CropRect {
 
   static CropRect decode(Object result) {
     result as List<Object?>;
-    return CropRect(
-      left: result[0]! as int,
-      top: result[1]! as int,
-      right: result[2]! as int,
-      bottom: result[3]! as int,
-    );
+    return CropRect(left: result[0]! as int, top: result[1]! as int, right: result[2]! as int, bottom: result[3]! as int);
   }
 
   @override
@@ -288,15 +248,7 @@ class ScannerOptions {
   int scanDelaySuccess;
 
   List<Object?> _toList() {
-    return <Object?>[
-      tryHarder,
-      tryRotate,
-      tryInvert,
-      qrCode,
-      cropPercent,
-      scanDelay,
-      scanDelaySuccess,
-    ];
+    return <Object?>[tryHarder, tryRotate, tryInvert, qrCode, cropPercent, scanDelay, scanDelaySuccess];
   }
 
   Object encode() {
@@ -476,11 +428,7 @@ abstract class FitatuBarcodeScannerFlutterApi {
 
   void onScanError(String error);
 
-  static void setUp(
-    FitatuBarcodeScannerFlutterApi? api, {
-    BinaryMessenger? binaryMessenger,
-    String messageChannelSuffix = '',
-  }) {
+  static void setUp(FitatuBarcodeScannerFlutterApi? api, {BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''}) {
     messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
     {
       final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(

@@ -1,66 +1,87 @@
-import 'dart:math';
+part of '../../fitatu_barcode_scanner.dart';
 
-import 'package:fitatu_barcode_scanner/fitatu_barcode_scanner.dart';
-import 'package:flutter/material.dart';
-
-import '../../scanner_preview_mixin.dart';
-
-class AndroidFitatuScannerPreview extends StatefulWidget {
-  const AndroidFitatuScannerPreview({
-    super.key,
+class _AndroidFitatuScannerPreview extends StatefulWidget {
+  const _AndroidFitatuScannerPreview({
+    required this.controller,
     required this.onResult,
-    required this.options,
     this.onChanged,
     this.onError,
     this.overlayBuilder,
+    super.key,
   });
 
-  final ScannerOptions options;
+  final _AndroidBarcodeScanner? controller;
   final FitatuBarcodeScannerResultCallback onResult;
   final FitatuBarcodeScannerErrorCallback? onError;
   final VoidCallback? onChanged;
   final PreviewOverlayBuilder? overlayBuilder;
 
   @override
-  State<AndroidFitatuScannerPreview> createState() => AndroidFitatuScannerPreviewState();
+  State<_AndroidFitatuScannerPreview> createState() => _AndroidFitatuScannerPreviewState();
 }
 
-class AndroidFitatuScannerPreviewState extends State<AndroidFitatuScannerPreview> with ScannerPreviewMixin {
-  late FitatuBarcodeScanner _scanner;
-
-  void setStateIfMounted() {
-    if (mounted) {
-      setState(() {});
-    }
-  }
+class _AndroidFitatuScannerPreviewState extends State<_AndroidFitatuScannerPreview> with ScannerPreviewMixin {
+  _FitatuBarcodeScanner? get _scanner => widget.controller?._scanner;
 
   @override
   void initState() {
     super.initState();
-    _scanner = FitatuBarcodeScanner(
-      onResult: (code) => widget.onResult(code),
-      onError: (e) => widget.onError?.call(e),
-    )..addListener(_scannerListener);
-    _scanner.init(widget.options);
+    _setupScanner();
+  }
+
+  @override
+  void didUpdateWidget(covariant _AndroidFitatuScannerPreview oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (!identical(oldWidget.controller, widget.controller)) {
+      final oldController = widget.controller?._scanner;
+      oldController?.removeListener(_scannerListener);
+      _setupScanner();
+    }
+  }
+
+  void _setupScanner() {
+    _scanner?.addListener(_scannerListener);
+    _scanner?.onResult = widget.onResult;
+    _scanner?.onError = widget.onError;
   }
 
   void _scannerListener() {
-    setStateIfMounted();
+    if (mounted) {
+      setState(() {});
+    }
     widget.onChanged?.call();
   }
 
   @override
   void dispose() {
-    _scanner
-      ..removeListener(_scannerListener)
-      ..release();
+    _scanner?.removeListener(_scannerListener);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final cameraConfig = _scanner.cameraConfig;
-    final cameraImage = _scanner.cameraImage;
+    final cameraConfig = _scanner?.cameraConfig;
+    final cameraImage = _scanner?.cameraImage;
+
+    final metrix = cameraImage != null
+        ? CameraPreviewMetrix(
+            cropRect: Rect.fromLTRB(
+              cameraImage.cropRect.left.toDouble(),
+              cameraImage.cropRect.top.toDouble(),
+              cameraImage.cropRect.right.toDouble(),
+              cameraImage.cropRect.bottom.toDouble(),
+            ),
+            width: cameraImage.width.toDouble(),
+            height: cameraImage.height.toDouble(),
+            rotationDegrees: cameraImage.rotationDegrees,
+          )
+        : CameraPreviewMetrix(
+            cropRect: Rect.zero,
+            width: 0,
+            height: 0,
+            rotationDegrees: 0,
+          );
 
     return Stack(
       fit: StackFit.expand,
@@ -73,8 +94,8 @@ class AndroidFitatuScannerPreviewState extends State<AndroidFitatuScannerPreview
                 fit: BoxFit.cover,
                 child: SizedBox.fromSize(
                   size: Size(
-                    min(cameraConfig.previewHeight, cameraConfig.previewWidth).toDouble(),
-                    max(cameraConfig.previewHeight, cameraConfig.previewWidth).toDouble(),
+                    math.min(cameraConfig.previewHeight, cameraConfig.previewWidth).toDouble(),
+                    math.max(cameraConfig.previewHeight, cameraConfig.previewWidth).toDouble(),
                   ),
                   child: Texture(
                     key: ValueKey(cameraConfig),
@@ -85,37 +106,19 @@ class AndroidFitatuScannerPreviewState extends State<AndroidFitatuScannerPreview
             ),
           )
         else
-          const SizedBox.shrink(),
-        if (cameraImage != null)
-          Builder(
-            builder: (context) {
-              final metrix = CameraPreviewMetrix(
-                cropRect: Rect.fromLTRB(
-                  cameraImage.cropRect.left.toDouble(),
-                  cameraImage.cropRect.top.toDouble(),
-                  cameraImage.cropRect.right.toDouble(),
-                  cameraImage.cropRect.bottom.toDouble(),
-                ),
-                width: cameraImage.width.toDouble(),
-                height: cameraImage.height.toDouble(),
-                rotationDegrees: cameraImage.rotationDegrees,
-              );
-
-              return widget.overlayBuilder?.call(context, metrix) ??
-                  PreviewOverlay(
-                    cameraPreviewMetrix: metrix,
-                  );
-            },
+          SizedBox.expand(
+            child: ColoredBox(color: PreviewOverlayTheme.of(context).overlayColor),
           ),
+        widget.overlayBuilder?.call(context, metrix) ?? PreviewOverlay(cameraPreviewMetrix: metrix),
       ],
     );
   }
 
   @override
   void setTorchEnabled({required bool isEnabled}) {
-    _scanner.setTorchEnabled(isEnabled);
+    _scanner?.setTorchEnabled(isEnabled);
   }
 
   @override
-  bool isTorchEnabled() => _scanner.isTorchEnabled;
+  bool isTorchEnabled() => _scanner?.isTorchEnabled ?? false;
 }
