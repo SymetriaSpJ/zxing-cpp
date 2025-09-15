@@ -42,15 +42,15 @@ Notes
 - The manager guarantees FIFO and single active lease at a time.
 - `releaseWaiting()` completes after the resource is fully released and the lease is dequeued, so it’s safe to rely on it before acquiring another lease.
 
-## Getting Started (native code)
+## Getting Started
 
 To work with native plugin code:
 
-1. Go to `zxing-cpp/wrappers/flutter/example`
+1. Go to the `zxing-cpp/wrappers/flutter/example`
 2. Run `flutter build apk --config-only`
-3. Open `example/android/build.gradle` in Android Studio (Open Project)
-4. Accept Gradle Sync
-5. If prompted for AGP updates, choose “Don’t remind me again for this project”.
+3. Select **Open an existing Android Studio Project** in the **Welcome to Android Studio** dialog, or select **File > Open** from the menu, and select the `hello/example/android/build.gradle` file.
+4. In the **Gradle Sync** dialog, select OK.
+5. In the **Android Gradle Plugin Update** dialog, select **Don't remind me again for this project.**
 
 ## Pigeon
 
