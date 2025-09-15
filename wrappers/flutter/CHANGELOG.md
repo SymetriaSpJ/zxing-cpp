@@ -1,9 +1,19 @@
 ## 5.0.0
- TODO
+Lease manager for camera and heavy resources
+
+- New: ResourceLeaseManager — provides exclusive (sequential) access to hardware resources via leases.
+  - Adds optional timeouts: `createTimeout` and `releaseTimeout` to guard against hangs.
+  - `releaseWaiting()` now completes after the resource is fully released and the lease is dequeued.
+- Docs: Added detailed documentation for the lease manager and lease handle.
+- Tests: Added unit tests for ResourceLeaseManager covering lifecycle, FIFO, timeouts, and queue limits.
+
+Widget changes (FitatuBarcodeScannerPreview)
+- API: constructor now expects `controllerLease: ResourceLease<FitatuBarcodeScannerController>` providing exclusive access to the camera controller.
+- Internals: unifies Android/iOS previews behind a single widget; Android uses zxing, iOS uses `MobileScannerController` under the hood.
 
 ## 4.0.0
- * Renamed `FitatuBarcodeScannerFlutterApi.result` to `FitatuBarcodeScannerFlutterApi.onScanResult`
- * The `FitatuBarcodeScannerFlutterApi.onScanResult` now returns `FitatuBarcodeScannerResult` instead of `String`. It contains additional informations like `format`
+* Renamed `FitatuBarcodeScannerFlutterApi.result` to `FitatuBarcodeScannerFlutterApi.onScanResult`
+* The `FitatuBarcodeScannerFlutterApi.onScanResult` now returns `FitatuBarcodeScannerResult` instead of `String`. It contains additional informations like `format`
 
 ## 3.1.0
  * Update dependencies to the highest version compatible with Flutter 3.27.3

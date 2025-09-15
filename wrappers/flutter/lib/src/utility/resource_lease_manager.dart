@@ -2,12 +2,43 @@ import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:collection';
 
+/// Asynchronous factory invoked when a lease becomes active.
+///
+/// - Called when the lease reaches the front of the queue.
+/// - Should return a ready‑to‑use resource (e.g. an initialized camera controller).
+/// - May be wrapped by the manager's `createTimeout`.
 typedef ResourceFactory<T> = Future<T> Function();
+
+/// Function that releases the resource after the lease ends.
+///
+/// - Invoked exactly once for each created resource.
+/// - Must fully and safely release the resource (e.g. `dispose`).
+/// - May be wrapped by the manager's `releaseTimeout`.
 typedef ResourceReleaser<T> = Future<void> Function(T resource);
+
+/// Logger interface — allows injecting a custom logger.
 typedef ResourceLogger = void Function(String message, Object? error, StackTrace? stackTrace);
 
+/// Manager that provides exclusive (sequential) access to a resource via leases.
+///
+/// How it works:
+/// - Only one lease can be active at a time; others wait in a FIFO queue.
+/// - When a lease becomes active, the manager calls the `ResourceFactory`, then
+///   completes `lease.resource`. Use the resource only within that lease window.
+/// - When finished, call `lease.release()` / `lease.releaseWaiting()`; the manager
+///   calls the `ResourceReleaser` and moves to the next lease.
+/// - If a lease is released before the resource is created, creation is skipped.
+/// - Optional `createTimeout` / `releaseTimeout` protect against hangs.
+///
+/// Typical use: serialize access to `CameraController` / `MobileScannerController`.
+/// Prevents concurrent camera use and simplifies the resource life cycle.
 class ResourceLeaseManager {
-  ResourceLeaseManager({ResourceLogger? logger, this.createTimeout, this.releaseTimeout, this.maxQueueLength}) : _logger = logger;
+  ResourceLeaseManager({
+    ResourceLogger? logger,
+    this.createTimeout,
+    this.releaseTimeout,
+    this.maxQueueLength,
+  }) : _logger = logger;
 
   final _leases = ListQueue<ResourceLease>();
   final ResourceLogger? _logger;
@@ -15,27 +46,36 @@ class ResourceLeaseManager {
   final Duration? releaseTimeout;
   final int? maxQueueLength;
 
+  /// Number of items in the queue (active + pending).
   int get queueLength => _leases.length;
+
+  /// Whether there is an active or pending lease.
   bool get hasActiveLease => _leases.isNotEmpty;
 
-  void _log(String message, [Object? error, StackTrace? stackTrace]) {
-    _logger?.call(message, error, stackTrace);
-    dev.log(message, error: error, stackTrace: stackTrace);
+  void _log(String component, String message, {Object? error, StackTrace? stackTrace, int level = 800}) {
+    final formatted = '[$component] $message';
+    _logger?.call(formatted, error, stackTrace);
+    dev.log(message, name: component, level: level, error: error, stackTrace: stackTrace);
   }
 
+  /// Creates a new lease and enqueues it.
+  ///
+  /// - Returns a `ResourceLease<T>` handle exposing `Future<T> resource`.
+  /// - The resource is created only when the lease reaches the front of the queue.
+  /// - Throws `ResourceLeaseManagerException` if `maxQueueLength` is exceeded.
   ResourceLease<T> lease<T extends Object>({required ResourceFactory<T> create, required ResourceReleaser<T> release}) {
-    _log('$ResourceLeaseManager.lease<$T>');
+    _log('ResourceLeaseManager', 'lease<$T> requested');
     final lease = ResourceLease<T>._(create, release, this);
     if (_leases.isEmpty) {
-      _log('Queue is empty, scheduled lease - $lease');
       _leases.add(lease);
+      _log('ResourceLeaseManager', 'lease enqueued and scheduled; lease=$lease, queue_len=${_leases.length}');
       unawaited(_processLease(lease));
     } else {
       if (_leases.length == maxQueueLength) {
-        throw ResourceLeaseManagerException('❌ Queue length exceeded');
+        throw ResourceLeaseManagerException('Queue length exceeded');
       }
-      _log('Lease queued - $lease');
       _leases.add(lease);
+      _log('ResourceLeaseManager', 'lease enqueued; lease=$lease, queue_len=${_leases.length}');
     }
 
     return lease;
@@ -44,25 +84,27 @@ class ResourceLeaseManager {
   Future<void> _processLease<T extends Object>(ResourceLease<T> lease) async {
     try {
       if (!lease.isReleased) {
-        _log('Processing lease - $lease');
+        _log('ResourceLeaseManager', 'processing lease; lease=$lease, queue_len=${_leases.length}');
         await lease._openResource();
-        _log('Waiting for lease release - $lease');
+        _log('ResourceLeaseManager', 'awaiting lease release; lease=$lease');
         await lease._untilReleased();
-        _log('Lease released - $lease');
-        _log('____________________________________________');
+        _log('ResourceLeaseManager', 'lease released; lease=$lease');
       } else {
-        _log('Lease already released, skipping - $lease');
+        _log('ResourceLeaseManager', 'lease already released before open; skipping; lease=$lease');
       }
     } catch (e, st) {
-      _log('_processLease error', e, st);
+      _log('ResourceLeaseManager', 'process lease failed; lease=$lease', error: e, stackTrace: st, level: 1000);
       throw StateError('Error occurred while processing $lease');
     } finally {
       _dequeueChecked(lease);
 
+      _log('ResourceLeaseManager', 'lease dequeued; lease=$lease, queue_len=${_leases.length}');
+      lease._markDequeued();
+
       final next = _leases.firstOrNull;
       if (next != null) {
-        _log('Scheduled next lease - $next');
-        await _processLease(next);
+        _log('ResourceLeaseManager', 'scheduling next lease; next=$next, queue_len=${_leases.length}');
+        scheduleMicrotask(() => _processLease(next));
       }
     }
   }
@@ -70,11 +112,23 @@ class ResourceLeaseManager {
   void _dequeueChecked(ResourceLease lease) {
     final removed = _leases.remove(lease);
     if (!removed) {
-      throw StateError('Error occurred while removing lease from queue');
+      _log('ResourceLeaseManager', 'queue desynchronization: failed to remove lease; lease=$lease', level: 1000);
+      throw StateError('Queue desynchronization: failed to remove lease from queue');
     }
   }
 }
 
+/// Lease handle representing an exclusive right to use a resource.
+///
+/// Life cycle:
+/// - Created via `ResourceLeaseManager.lease(...)` and enqueued.
+/// - When it reaches the front, `resource` completes with the created value.
+/// - When done, call `release()` / `releaseWaiting()` to free the resource and
+///   unblock the next lease.
+///
+/// Tips:
+/// - Always release the lease (e.g. in a widget's `dispose` or a `finally`).
+/// - If you release before the resource is created, creation is skipped.
 final class ResourceLease<T extends Object> {
   ResourceLease._(this._createCallback, this._releaseCallback, this._parent) : _id = Object().hashCode;
 
@@ -86,54 +140,77 @@ final class ResourceLease<T extends Object> {
 
   final _completer = Completer<T>();
   final _releaseCompleter = Completer();
+  final _dequeuedCompleter = Completer<void>();
 
+  /// Whether the resource has been created (`resource` is completed).
   bool get isCompleted => _completer.isCompleted;
+
+  /// Whether the lease has been released.
   bool get isReleased => _releaseCompleter.isCompleted;
 
   T? _value;
+
+  /// Direct access to the resource after creation (may be `null` until ready).
   T? get value => _value;
 
   bool _isTimedOut = false;
+
+  /// Whether the open operation exceeded the timeout.
   bool get isTimedOut => _isTimedOut;
 
+  /// Completes when the resource is created and ready for use.
   Future<T> get resource => _completer.future;
 
   Future<void> _openResource() async {
     if (isCompleted) throw StateError('The $this was already completed');
-    _parent._log('Creating resource - $this ...');
+    _parent._log('ResourceLease', 'creating resource; lease=$this');
 
     const tag = '_openResource';
 
-    final value = _value = await _withTimeout(_measureTime(_createCallback(), tag), _parent.createTimeout, tag);
+    final value = _value = await _withTimeout(
+      _measureTime(_createCallback(), tag),
+      _parent.createTimeout,
+      tag,
+    );
 
     if (value != null) {
       _completer.complete(value);
     } else {
       _isTimedOut = true;
-      final error = ResourceLeaseManagerException('Timeout - $this');
-      _parent._log('_openResource timeout - $this', error, StackTrace.current);
+      final error = ResourceLeaseManagerException('Open timeout; lease=$this');
+      _parent._log('ResourceLease', 'open timeout; lease=$this', error: error, stackTrace: StackTrace.current, level: 1000);
       _completer.completeError(error);
     }
   }
 
-  Future<void> _release() async {
+  Future<void> _release() => Future.microtask(() async {
     const tag = '_release';
 
     try {
       if (value case final value?) {
-        _parent._log('Releasing resource - $this ...');
-        await _withTimeout(_measureTime(_releaseCallback(value), tag), _parent.releaseTimeout, tag);
+        _parent._log('ResourceLease', 'releasing resource; lease=$this');
+        await _withTimeout(
+          _measureTime(_releaseCallback(value), tag),
+          _parent.releaseTimeout,
+          tag,
+        );
       } else {
-        _parent._log('✅ Lease released before resource was created - $this');
+        _parent._log('ResourceLease', 'released before resource creation; no-op; lease=$this');
       }
     } catch (e, st) {
-      _parent._log('Error occurred while releasing lease - $this. This can lead to unexpected behaviours', e, st);
+      _parent._log(
+        'ResourceLease',
+        'release failed; lease=$this. Resource may be left in inconsistent state',
+        error: e,
+        stackTrace: st,
+        level: 1000,
+      );
     } finally {
       if (!isReleased) {
         _releaseCompleter.complete();
       }
     }
-  }
+  });
 
   Future<void> _untilReleased() async {
     if (isTimedOut) return;
@@ -144,7 +221,7 @@ final class ResourceLease<T extends Object> {
     if (timeout == null) return future;
 
     final watchdogTimer = Timer(timeout * 0.75, () {
-      _parent._log('⚠️ Operation is close to reach the timeout - $this - #$tag');
+      _parent._log('ResourceLease', 'operation nearing timeout; lease=$this, op=$tag, timeout=${timeout.inMilliseconds}ms', level: 900);
     });
 
     try {
@@ -162,13 +239,27 @@ final class ResourceLease<T extends Object> {
       return await future;
     } finally {
       stopwatch.stop();
-      _parent._log('⏱️ Elapsed - ${stopwatch.elapsed} - $this - #$tag');
+      _parent._log('ResourceLease', 'elapsed=${stopwatch.elapsed} op=$tag lease=$this');
     }
   }
 
+  /// Releases the lease asynchronously. Errors are logged; the queue continues.
   void release() => unawaited(releaseWaiting());
 
-  Future<void> releaseWaiting() => _release();
+  /// Releases the lease and returns a `Future` that completes when the resource
+  /// has been fully released.
+  Future<void> releaseWaiting() async {
+    await _release();
+    if (!_dequeuedCompleter.isCompleted) {
+      await _dequeuedCompleter.future;
+    }
+  }
+
+  void _markDequeued() {
+    if (!_dequeuedCompleter.isCompleted) {
+      _dequeuedCompleter.complete();
+    }
+  }
 
   @override
   int get hashCode => _id;
@@ -182,6 +273,7 @@ final class ResourceLease<T extends Object> {
   }
 }
 
+/// Error thrown by the lease manager — e.g. queue limit exceeded or timeouts.
 final class ResourceLeaseManagerException implements Exception {
   const ResourceLeaseManagerException([this.message]);
 
