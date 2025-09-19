@@ -27,7 +27,7 @@ class _FitatuBarcodeScanner extends FitatuBarcodeScannerHostApi with ChangeNotif
 
   FitatuBarcodeScannerResultCallback? onResult;
   FitatuBarcodeScannerErrorCallback? onError;
-  var _isTorchEnabled = false;
+  bool _isTorchEnabled = false;
   bool get isTorchEnabled => _isTorchEnabled;
   CameraConfig? _cameraConfig;
   CameraConfig? get cameraConfig => _cameraConfig;

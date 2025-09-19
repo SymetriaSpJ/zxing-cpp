@@ -46,7 +46,7 @@ class FitatuBarcodeScannerPreviewState extends State<FitatuBarcodeScannerPreview
           preview = CameraPermissionsGuard(
             child: _AndroidFitatuScannerPreview(
               key: _key,
-              controller: controller != null ? controller as _AndroidBarcodeScanner : null,
+              controller: controller is _AndroidBarcodeScanner ? controller : null,
               onResult: widget.onResult,
               onChanged: widget.onChanged,
               onError: widget.onError,
@@ -56,7 +56,7 @@ class FitatuBarcodeScannerPreviewState extends State<FitatuBarcodeScannerPreview
         } else if (Platform.isIOS) {
           preview = _CommonFitatuScannerPreview(
             key: _key,
-            controller: controller != null ? controller as _IOSBarcodeScanner : null,
+            controller: controller is _IOSBarcodeScanner ? controller : null,
             onResult: widget.onResult,
             onChanged: widget.onChanged,
             onError: widget.onError,

@@ -139,7 +139,7 @@ final class ResourceLease<T extends Object> {
   final ResourceReleaser<T> _releaseCallback;
 
   final _completer = Completer<T>();
-  final _releaseCompleter = Completer();
+  final _releaseCompleter = Completer<void>();
   final _dequeuedCompleter = Completer<void>();
 
   /// Whether the resource has been created (`resource` is completed).
@@ -184,6 +184,8 @@ final class ResourceLease<T extends Object> {
   }
 
   Future<void> _release() => Future.microtask(() async {
+    if (isReleased) return;
+
     const tag = '_release';
 
     try {

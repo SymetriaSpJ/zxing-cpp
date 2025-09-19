@@ -187,7 +187,6 @@ class _LifecycleAwareState extends State<_LifecycleAware> with WidgetsBindingObs
         }
         break;
       case AppLifecycleState.detached:
-        break;
       case AppLifecycleState.hidden:
         break;
     }
