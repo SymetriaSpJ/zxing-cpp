@@ -1,3 +1,6 @@
+## 5.0.1
+* Update zxing-cpp to current master due to 16KB page support
+
 ## 5.0.0
 Lease manager for camera and heavy resources
 
