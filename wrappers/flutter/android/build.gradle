@@ -9,7 +9,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.11.0'
+        classpath 'com.android.tools.build:gradle:8.13.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -28,6 +28,7 @@ android {
     namespace 'com.fitatu.barcodescanner.fitatu_barcode_scanner'
 
     compileSdkVersion 35
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         // Flag to enable support for the new language APIs
@@ -45,7 +46,7 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 21
+        minSdkVersion 24
 
         consumerProguardFiles 'proguard-rules.pro'
 
