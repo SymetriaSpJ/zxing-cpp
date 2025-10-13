@@ -27,8 +27,9 @@ class _CommonFitatuScannerPreviewState extends State<_CommonFitatuScannerPreview
   ScannerOptions? get options => widget.controller?.scannerOptions;
 
   Future<void> startController(MobileScannerController? controller) async {
-    await controller?.start();
-    await controller?.resetZoomScale();
+    if (controller == null || controller.value.isStarting) return;
+    await controller.start();
+    await controller.resetZoomScale();
   }
 
   @override
@@ -49,7 +50,7 @@ class _CommonFitatuScannerPreviewState extends State<_CommonFitatuScannerPreview
   Widget build(BuildContext context) {
     return _LifecycleAware(
       onPause: controller?.stop,
-      onResume: controller?.start,
+      onResume: () => startController(controller),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final scanWindowSize = constraints.maxHeight * (options?.cropPercent ?? 0);
