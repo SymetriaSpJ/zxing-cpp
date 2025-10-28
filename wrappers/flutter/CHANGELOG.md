@@ -1,5 +1,8 @@
 ## 5.0.5
-Fixed initialization of the `CommonFitatuScannerPreview` widget. Prevented multiple calls to `start`
+* Fixed initialization of the `CommonFitatuScannerPreview` widget. Prevented multiple calls to `start`
+* Added `fvm` to the project
+* Bumped flutter from `3.35.1` to `3.35.5`
+* Bumbed `mobile_scanner` from `7.1.2` to `7.1.3`
 
 ## 5.0.4
 * Fixed CMakeLists.txt due to problems with 16KB page size
