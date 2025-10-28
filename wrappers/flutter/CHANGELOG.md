@@ -1,3 +1,22 @@
+## 5.0.5
+* Fixed initialization of the `CommonFitatuScannerPreview` widget. Prevented multiple calls to `start`
+* Added `fvm` to the project
+* Bumped flutter from `3.35.1` to `3.35.5`
+* Bumbed `mobile_scanner` from `7.1.2` to `7.1.3`
+
+## 5.0.4
+* Fixed CMakeLists.txt due to problems with 16KB page size
+
+## 5.0.3
+* Migrated to 16KB page size (Android)
+
+## 5.0.2
+* Bumped `minSdkVersion` from `21` to `24` 
+* Set `ndkVersion` to `27.0.12077973`
+* Bumped AGP to `8.13.1`
+* Updated `mobile_scanner` package to `7.1.2`
+* Updated `pigeon` package to `26.0.1`
+
 ## 5.0.1
 * Update zxing-cpp to current master due to 16KB page support
 

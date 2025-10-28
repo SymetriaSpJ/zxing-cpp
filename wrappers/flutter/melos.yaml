@@ -1,4 +1,5 @@
 name: fitatu_barcode_scanner
+sdkPath: .fvm/flutter_sdk
 
 packages:
   - .
@@ -7,3 +8,6 @@ packages:
 command:
   bootstrap:
     usePubspecOverrides: true
+    environment:
+      sdk: ">=3.8.1 <4.0.0"
+      flutter: ">=3.35.5"

@@ -1,18 +1,18 @@
 name: fitatu_barcode_scanner
 description: Fitatu implementation of zxing scanner and navite camera API's
 publish_to: none
-version: 5.0.4
+version: 5.0.5
 
 environment:
   sdk: ">=3.8.1 <4.0.0"
-  flutter: ">=3.35.1"
+  flutter: ">=3.35.5"
 
 dependencies:
   flutter:
     sdk: flutter
   plugin_platform_interface: ^2.1.8
   # support iOS
-  mobile_scanner: ^7.1.2
+  mobile_scanner: ^7.1.3
   permission_handler: ^12.0.1
 
 dev_dependencies:
