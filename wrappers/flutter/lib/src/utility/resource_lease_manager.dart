@@ -94,7 +94,7 @@ class ResourceLeaseManager {
       }
     } catch (e, st) {
       _log('ResourceLeaseManager', 'process lease failed; lease=$lease', error: e, stackTrace: st, level: 1000);
-      throw StateError('Error occurred while processing $lease');
+      throw StateError('Error occurred while processing $lease, exception=$e, stackTrace=$st');
     } finally {
       _dequeueChecked(lease);
 

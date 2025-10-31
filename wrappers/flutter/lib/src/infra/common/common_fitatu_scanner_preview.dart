@@ -9,14 +9,14 @@ class _CommonFitatuScannerPreview extends StatefulWidget {
     required this.onResult,
     this.onError,
     this.onChanged,
-    this.overlayBuilder,
+    this.previewOverlayBuilder,
   });
 
   final _IOSBarcodeScanner? controller;
   final FitatuBarcodeScannerResultCallback onResult;
   final FitatuBarcodeScannerErrorCallback? onError;
+  final FitatuBarcodeScannerPreviewOverlayBuilder? previewOverlayBuilder;
   final VoidCallback? onChanged;
-  final PreviewOverlayBuilder? overlayBuilder;
 
   @override
   State<_CommonFitatuScannerPreview> createState() => _CommonFitatuScannerPreviewState();
@@ -26,46 +26,160 @@ class _CommonFitatuScannerPreviewState extends State<_CommonFitatuScannerPreview
   MobileScannerController? get controller => widget.controller?._controller;
   ScannerOptions? get options => widget.controller?.scannerOptions;
 
-  Future<void> startController(MobileScannerController? controller) async {
-    if (controller == null || controller.value.isStarting) return;
-    await controller.start();
-    await controller.resetZoomScale();
+  @override
+  Widget build(BuildContext context) {
+    return _LifecycleAwareMobileScanner(
+      controller: controller,
+      options: options,
+      previewOverlayBuilder: widget.previewOverlayBuilder,
+      onResult: widget.onResult,
+      onError: widget.onError,
+      onChanged: widget.onChanged,
+    );
+  }
+
+  @override
+  Future<void> setTorchEnabled({required bool isEnabled}) async {
+    try {
+      if (isTorchEnabled() != isEnabled) {
+        await controller?.toggleTorch();
+      }
+    } catch (e, st) {
+      widget.onError?.call(FitatuBarcodeScannerException('Cannot change torch state', e), st);
+    }
+  }
+
+  @override
+  bool isTorchEnabled() => controller?.value.torchState == TorchState.on;
+}
+
+final class _LifecycleAwareMobileScanner extends StatefulWidget {
+  _LifecycleAwareMobileScanner({
+    required this.controller,
+    required this.options,
+    required this.previewOverlayBuilder,
+    required this.onResult,
+    required this.onError,
+    required this.onChanged,
+  }) : assert(
+         controller == null || !controller.autoStart,
+         'Only controllers with `autoStart=false` are supported',
+       );
+
+  final MobileScannerController? controller;
+  final ScannerOptions? options;
+  final FitatuBarcodeScannerPreviewOverlayBuilder? previewOverlayBuilder;
+  final FitatuBarcodeScannerResultCallback onResult;
+  final FitatuBarcodeScannerErrorCallback? onError;
+  final VoidCallback? onChanged;
+
+  @override
+  State<_LifecycleAwareMobileScanner> createState() => _LifecycleAwareMobileScannerState();
+}
+
+class _LifecycleAwareMobileScannerState extends State<_LifecycleAwareMobileScanner> {
+  final controllerStateLeaseManager = ResourceLeaseManager();
+  ResourceLease<MobileScannerController>? controllerStateLease;
+
+  void startController() {
+    final controller = widget.controller;
+    if (controller == null) return;
+
+    if (controllerStateLeaseManager.hasActiveLease) {
+      stopController();
+    }
+
+    controllerStateLease = controllerStateLeaseManager.lease<MobileScannerController>(
+      create: () async {
+        try {
+          controller.addListener(onControllerChanged);
+
+          final completer = Completer();
+
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              completer.complete(controller.start());
+            }
+          });
+
+          await completer.future;
+
+          return controller;
+        } catch (e, st) {
+          widget.onError?.call(FitatuBarcodeScannerException('Cannot start controller', e), st);
+        }
+
+        return controller;
+      },
+      release: (controller) async {
+        try {
+          controller.removeListener(onControllerChanged);
+
+          await controller.stop();
+        } catch (e, st) {
+          widget.onError?.call(FitatuBarcodeScannerException('Cannot release controller', e), st);
+        }
+      },
+    );
+  }
+
+  void stopController() {
+    controllerStateLease?.release();
+  }
+
+  void onControllerChanged() {
+    widget.onChanged?.call();
   }
 
   @override
   void initState() {
     super.initState();
-    unawaited(startController(controller));
+    startController();
   }
 
   @override
-  void didUpdateWidget(covariant _CommonFitatuScannerPreview oldWidget) {
+  void didUpdateWidget(covariant _LifecycleAwareMobileScanner oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!identical(oldWidget.controller, widget.controller)) {
-      unawaited(startController(controller));
+    if (oldWidget.controller != widget.controller) {
+      stopController();
+      startController();
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    return _LifecycleAware(
-      onPause: controller?.stop,
-      onResume: () => startController(controller),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final scanWindowSize = constraints.maxHeight * (options?.cropPercent ?? 0);
-          final scanWindow = Rect.fromCenter(
-            center: Offset(constraints.maxWidth / 2, constraints.maxHeight / 2),
-            width: scanWindowSize,
-            height: scanWindowSize,
-          );
+  void dispose() {
+    stopController();
+    super.dispose();
+  }
 
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              if (controller case final controller?)
-                MobileScanner(
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final scanWindowSize = constraints.maxHeight * (widget.options?.cropPercent ?? 0);
+        final scanWindow = Rect.fromCenter(
+          center: Offset(constraints.maxWidth / 2, constraints.maxHeight / 2),
+          width: scanWindowSize,
+          height: scanWindowSize,
+        );
+
+        final metrix = CameraPreviewMetrix(
+          cropRect: scanWindow,
+          width: constraints.maxWidth,
+          height: constraints.maxHeight,
+          rotationDegrees: 90,
+        );
+
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            if (widget.controller case final controller?)
+              _LifecycleAware(
+                onPause: () => stopController(),
+                onResume: () => startController(),
+                child: MobileScanner(
                   controller: controller,
+                  useAppLifecycleState: false,
                   scanWindow: scanWindow,
                   onDetect: (response) {
                     final barcodes = response.barcodes.where((b) => b.rawValue != null).whereType<Barcode>().toList();
@@ -96,52 +210,25 @@ class _CommonFitatuScannerPreviewState extends State<_CommonFitatuScannerPreview
                       );
                     }
                   },
+                  onDetectError: (error, stackTrace) => widget.onError?.call(
+                    FitatuBarcodeScannerException('onDetectError', error),
+                    stackTrace,
+                  ),
+                  errorBuilder: (context, exception) => _ErrorWidget(
+                    exception: FitatuBarcodeScannerException(
+                      'MobileScanner error',
+                      exception,
+                    ),
+                    onError: widget.onError,
+                  ),
                 ),
-              Builder(
-                builder: (context) {
-                  final metrix = CameraPreviewMetrix(
-                    cropRect: scanWindow,
-                    width: constraints.maxWidth,
-                    height: constraints.maxHeight,
-                    rotationDegrees: 90,
-                  );
-
-                  return widget.overlayBuilder?.call(context, metrix) ?? PreviewOverlay(cameraPreviewMetrix: metrix);
-                },
               ),
-            ],
-          );
-        },
-      ),
+            widget.previewOverlayBuilder?.call(context, metrix) ?? PreviewOverlay(cameraPreviewMetrix: metrix),
+          ],
+        );
+      },
     );
   }
-
-  @override
-  Future<void> setTorchEnabled({required bool isEnabled}) async {
-    try {
-      await controller?.toggleTorch();
-    } on Exception catch (e) {
-      setException(e);
-    } finally {
-      torchChangeListener();
-      safeSetState();
-    }
-  }
-
-  @override
-  bool isTorchEnabled() => controller?.torchEnabled ?? false;
-
-  void safeSetState() {
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  void setException(Exception? exception) {
-    widget.onError?.call(exception?.toString());
-  }
-
-  void torchChangeListener() => widget.onChanged?.call();
 }
 
 class _LifecycleAware extends StatefulWidget {
@@ -196,5 +283,42 @@ class _LifecycleAwareState extends State<_LifecycleAware> with WidgetsBindingObs
   @override
   Widget build(BuildContext context) {
     return widget.child;
+  }
+}
+
+class _ErrorWidget extends StatefulWidget {
+  const _ErrorWidget({
+    required this.exception,
+    required this.onError,
+  });
+
+  final FitatuBarcodeScannerException exception;
+  final FitatuBarcodeScannerErrorCallback? onError;
+
+  @override
+  State<_ErrorWidget> createState() => _ErrorWidgetState();
+}
+
+class _ErrorWidgetState extends State<_ErrorWidget> {
+  @override
+  void initState() {
+    super.initState();
+    widget.onError?.call(widget.exception, StackTrace.current);
+  }
+
+  @override
+  void didUpdateWidget(covariant _ErrorWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final didChanged = oldWidget.exception != widget.exception || oldWidget.onError != widget.onError;
+    if (didChanged) {
+      widget.onError?.call(widget.exception, StackTrace.current);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(widget.exception.toString()),
+    );
   }
 }
