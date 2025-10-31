@@ -15,7 +15,7 @@ part 'infra/android/android_fitatu_scanner_preview.dart';
 part 'infra/common/common_fitatu_scanner_preview.dart';
 part 'infra/fitatu_barcode_scanner_preview.dart';
 
-typedef FitatuBarcodeScannerErrorCallback = void Function(String? error);
+typedef FitatuBarcodeScannerErrorCallback = void Function(FitatuBarcodeScannerException exception, StackTrace stackTrace);
 typedef FitatuBarcodeScannerResultCallback = void Function(FitatuBarcodeScannerResult result);
 
 class _FitatuBarcodeScanner extends FitatuBarcodeScannerHostApi with ChangeNotifier implements FitatuBarcodeScannerFlutterApi {
@@ -84,7 +84,7 @@ class _FitatuBarcodeScanner extends FitatuBarcodeScannerHostApi with ChangeNotif
   @override
   void onScanError(String error) {
     _error = error;
-    onError?.call(error);
+    onError?.call(FitatuBarcodeScannerException(error), StackTrace.current);
     notifyListeners();
   }
 
@@ -140,7 +140,7 @@ final class _AndroidBarcodeScanner extends FitatuBarcodeScannerController {
 }
 
 final class _IOSBarcodeScanner extends FitatuBarcodeScannerController {
-  _IOSBarcodeScanner(super.options, {bool autoStart = false}) : _controller = MobileScannerController(autoStart: autoStart);
+  _IOSBarcodeScanner(super.options) : _controller = MobileScannerController(autoStart: false);
 
   final MobileScannerController _controller;
 
@@ -149,13 +149,27 @@ final class _IOSBarcodeScanner extends FitatuBarcodeScannerController {
 }
 
 final class FitatuBarcodeScannerException implements Exception {
-  const FitatuBarcodeScannerException([this.message]);
-  FitatuBarcodeScannerException.unsupportedPlatform() : message = 'Unsupported platform - ${Platform.operatingSystem}';
+  const FitatuBarcodeScannerException(this.message, [this.originalException]);
+  FitatuBarcodeScannerException.unsupportedPlatform()
+    : message = 'Unsupported platform - ${Platform.operatingSystem}',
+      originalException = null;
 
-  final String? message;
+  final String message;
+  final Object? originalException;
+
+  @override
+  int get hashCode => Object.hash(message, originalException);
+
+  @override
+  bool operator ==(Object other) => other is FitatuBarcodeScannerException && other.hashCode == hashCode;
 
   @override
   String toString() {
-    return '$FitatuBarcodeScannerException: ${message ?? 'unknown'}';
+    final buffer = StringBuffer('FitatuBarcodeScannerException: $message');
+    if (originalException != null) {
+      buffer.write(', originalException=$originalException');
+    }
+
+    return buffer.toString();
   }
 }

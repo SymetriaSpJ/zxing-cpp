@@ -1,6 +1,6 @@
 part of '../fitatu_barcode_scanner.dart';
 
-typedef PreviewOverlayBuilder = Widget Function(BuildContext context, CameraPreviewMetrix metrix);
+typedef FitatuBarcodeScannerPreviewOverlayBuilder = Widget Function(BuildContext context, CameraPreviewMetrix metrix);
 
 class FitatuBarcodeScannerPreview extends StatefulWidget {
   const FitatuBarcodeScannerPreview({
@@ -17,7 +17,8 @@ class FitatuBarcodeScannerPreview extends StatefulWidget {
   final FitatuBarcodeScannerResultCallback onResult;
   final FitatuBarcodeScannerErrorCallback? onError;
   final VoidCallback? onChanged;
-  final PreviewOverlayBuilder? previewOverlayBuilder;
+  final FitatuBarcodeScannerPreviewOverlayBuilder? previewOverlayBuilder;
+
   final PreviewOverlayThemeData theme;
 
   @override
@@ -51,6 +52,7 @@ class FitatuBarcodeScannerPreviewState extends State<FitatuBarcodeScannerPreview
               onChanged: widget.onChanged,
               onError: widget.onError,
               overlayBuilder: widget.previewOverlayBuilder,
+              // TODO: Preview error builder
             ),
           );
         } else if (Platform.isIOS) {
@@ -60,7 +62,7 @@ class FitatuBarcodeScannerPreviewState extends State<FitatuBarcodeScannerPreview
             onResult: widget.onResult,
             onChanged: widget.onChanged,
             onError: widget.onError,
-            overlayBuilder: widget.previewOverlayBuilder,
+            previewOverlayBuilder: widget.previewOverlayBuilder,
           );
         } else {
           throw FitatuBarcodeScannerException.unsupportedPlatform();

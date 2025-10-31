@@ -1,3 +1,8 @@
+## 5.1.0
+* Breaking: `FitatuBarcodeScannerErrorCallback` now receives a `FitatuBarcodeScannerException` and `StackTrace`; iOS `MobileScanner` errors surface through the callback.
+* Guarded the iOS `MobileScannerController` lifecycle to prevent duplicate start/stop calls, restart on resume, and report failures via the preview error builder.
+* Renamed `PreviewOverlayBuilder` to `FitatuBarcodeScannerPreviewOverlayBuilder` to match the plugin API.
+
 ## 5.0.5
 * Fixed initialization of the `CommonFitatuScannerPreview` widget. Prevented multiple calls to `start`
 * Added `fvm` to the project

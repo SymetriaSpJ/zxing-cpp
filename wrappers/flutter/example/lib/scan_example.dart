@@ -21,7 +21,7 @@ class _ScanExampleState extends State<ScanExample> {
   bool fullscreen = false;
   double cropPercent = 0.8;
   FitatuBarcodeScannerResult? result;
-  String? error;
+  Object? exception;
   late final ResourceLease<FitatuBarcodeScannerController> controllerLease;
   late final _previewKey = GlobalKey<FitatuBarcodeScannerPreviewState>();
 
@@ -64,13 +64,13 @@ class _ScanExampleState extends State<ScanExample> {
               if (value.code == null) return;
               setState(() {
                 result = value;
-                error = null;
+                exception = null;
               });
             },
-            onError: (value) {
+            onError: (exception, stackTrace) {
               setState(() {
                 result = null;
-                error = value;
+                this.exception = exception;
               });
             },
             onChanged: () {
@@ -116,7 +116,7 @@ class _ScanExampleState extends State<ScanExample> {
                   constraints: const BoxConstraints(minWidth: 200, minHeight: 20),
                   color: Colors.white.withValues(alpha: 0.5),
                   child: Text(
-                    error ?? '<no errors>',
+                    exception?.toString() ?? '<no exceptions>',
                     style: const TextStyle(color: Colors.black),
                     textAlign: TextAlign.center,
                   ),

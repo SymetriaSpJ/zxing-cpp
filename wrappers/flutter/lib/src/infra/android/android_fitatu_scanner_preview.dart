@@ -14,7 +14,7 @@ class _AndroidFitatuScannerPreview extends StatefulWidget {
   final FitatuBarcodeScannerResultCallback onResult;
   final FitatuBarcodeScannerErrorCallback? onError;
   final VoidCallback? onChanged;
-  final PreviewOverlayBuilder? overlayBuilder;
+  final FitatuBarcodeScannerPreviewOverlayBuilder? overlayBuilder;
 
   @override
   State<_AndroidFitatuScannerPreview> createState() => _AndroidFitatuScannerPreviewState();
