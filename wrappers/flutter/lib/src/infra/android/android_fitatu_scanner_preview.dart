@@ -21,68 +21,75 @@ class _AndroidFitatuScannerPreview extends StatefulWidget {
 }
 
 class _AndroidFitatuScannerPreviewState extends State<_AndroidFitatuScannerPreview> with ScannerPreviewMixin {
-  _FitatuBarcodeScanner? get scanner => widget.controller?._scanner;
-  late CameraPreviewMetrix metrix;
-  late CameraConfig? cameraConfig;
-  late CameraImage? cameraImage;
+  late _PreviewConfig _previewConfig;
 
   @override
   void initState() {
     super.initState();
-    _setupScanner();
+    _setupScanner(widget.controller?._scanner);
   }
 
   @override
   void didUpdateWidget(covariant _AndroidFitatuScannerPreview oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (!identical(oldWidget.controller, widget.controller)) {
-      final oldController = widget.controller?._scanner;
-      oldController?.removeListener(_onScannerChanged);
-      _setupScanner();
+    final oldScanner = oldWidget.controller?._scanner;
+    final newScanner = widget.controller?._scanner;
+
+    if (!identical(oldScanner, newScanner)) {
+      oldScanner?.removeListener(_onScannerChanged);
+      oldScanner?.onResult = null;
+      oldScanner?.onError = null;
+      _setupScanner(newScanner);
     }
   }
 
-  void _setupScanner() {
-    scanner?.addListener(_onScannerChanged);
-    scanner?.onResult = widget.onResult;
-    scanner?.onError = widget.onError;
-    _onScannerChanged();
+  void _setupScanner(_FitatuBarcodeScanner? scanner) {
+    if (scanner != null) {
+      scanner.addListener(_onScannerChanged);
+      scanner.onResult = widget.onResult;
+      scanner.onError = widget.onError;
+    }
+    _setPreviewConfig(scanner);
   }
 
   void _onScannerChanged() {
+    _setPreviewConfig(widget.controller?._scanner);
+    // Notify listeners after the first frame because the camera updates before
+    // the widgets mount
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        widget.onChanged?.call();
+      }
+    });
+  }
+
+  void _setPreviewConfig(_FitatuBarcodeScanner? scanner) {
+    final cameraImage = scanner?._cameraImage;
+    final metrix = cameraImage != null
+        ? CameraPreviewMetrix(
+            cropRect: Rect.fromLTRB(
+              cameraImage.cropRect.left.toDouble(),
+              cameraImage.cropRect.top.toDouble(),
+              cameraImage.cropRect.right.toDouble(),
+              cameraImage.cropRect.bottom.toDouble(),
+            ),
+            width: cameraImage.width.toDouble(),
+            height: cameraImage.height.toDouble(),
+            rotationDegrees: cameraImage.rotationDegrees,
+          )
+        : CameraPreviewMetrix(cropRect: Rect.zero, width: 0, height: 0, rotationDegrees: 0);
+
+    _previewConfig = _PreviewConfig(metrix, scanner?.cameraConfig);
+
     if (mounted) {
       setState(() {});
     }
-
-    cameraConfig = scanner?.cameraConfig;
-    final image = cameraImage = scanner?._cameraImage;
-
-    metrix = image != null
-        ? CameraPreviewMetrix(
-            cropRect: Rect.fromLTRB(
-              image.cropRect.left.toDouble(),
-              image.cropRect.top.toDouble(),
-              image.cropRect.right.toDouble(),
-              image.cropRect.bottom.toDouble(),
-            ),
-            width: image.width.toDouble(),
-            height: image.height.toDouble(),
-            rotationDegrees: image.rotationDegrees,
-          )
-        : CameraPreviewMetrix(
-            cropRect: Rect.zero,
-            width: 0,
-            height: 0,
-            rotationDegrees: 0,
-          );
-
-    widget.onChanged?.call();
   }
 
   @override
   void dispose() {
-    scanner?.removeListener(_onScannerChanged);
+    widget.controller?._scanner.removeListener(_onScannerChanged);
     super.dispose();
   }
 
@@ -91,39 +98,55 @@ class _AndroidFitatuScannerPreviewState extends State<_AndroidFitatuScannerPrevi
     return Stack(
       fit: StackFit.expand,
       children: [
-        if (cameraConfig case final config?)
+        if (_previewConfig.cameraConfig case final cameraConfig?)
           ClipRect(
             child: ConstrainedBox(
               constraints: const BoxConstraints.expand(),
               child: FittedBox(
                 fit: BoxFit.cover,
                 child: SizedBox.fromSize(
-                  size: Size(
-                    math.min(config.previewHeight, config.previewWidth).toDouble(),
-                    math.max(config.previewHeight, config.previewWidth).toDouble(),
-                  ),
-                  child: Texture(
-                    key: ValueKey(cameraConfig),
-                    textureId: config.textureId,
-                  ),
+                  size: _previewConfig.textureSize,
+                  child: Texture(key: ValueKey(cameraConfig), textureId: cameraConfig.textureId),
                 ),
               ),
             ),
           )
         else
-          SizedBox.expand(
-            child: ColoredBox(color: PreviewOverlayTheme.of(context).overlayColor),
-          ),
-        widget.overlayBuilder?.call(context, metrix) ?? PreviewOverlay(cameraPreviewMetrix: metrix),
+          SizedBox.expand(child: ColoredBox(color: PreviewOverlayTheme.of(context).overlayColor)),
+        widget.overlayBuilder?.call(context, _previewConfig.metrix) ?? PreviewOverlay(cameraPreviewMetrix: _previewConfig.metrix),
       ],
     );
   }
 
   @override
   void setTorchEnabled({required bool isEnabled}) {
-    scanner?.setTorchEnabled(isEnabled);
+    widget.controller?._scanner.setTorchEnabled(isEnabled);
   }
 
   @override
-  bool isTorchEnabled() => scanner?.isTorchEnabled ?? false;
+  bool isTorchEnabled() => widget.controller?._scanner.isTorchEnabled ?? false;
+}
+
+final class _PreviewConfig {
+  const _PreviewConfig(this.metrix, this.cameraConfig);
+
+  final CameraPreviewMetrix metrix;
+  final CameraConfig? cameraConfig;
+
+  Size get textureSize {
+    if (cameraConfig case final cameraConfig?) {
+      return Size(
+        math.min(cameraConfig.previewHeight, cameraConfig.previewWidth).toDouble(),
+        math.max(cameraConfig.previewHeight, cameraConfig.previewWidth).toDouble(),
+      );
+    }
+
+    return Size.zero;
+  }
+
+  @override
+  int get hashCode => Object.hash(metrix, cameraConfig);
+
+  @override
+  bool operator ==(Object other) => other is _PreviewConfig && other.hashCode == hashCode;
 }

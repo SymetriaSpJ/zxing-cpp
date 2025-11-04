@@ -8,13 +8,14 @@ import android.hardware.camera2.CameraMetadata
 import android.hardware.camera2.CaptureRequest
 import android.view.Surface
 import androidx.camera.camera2.interop.Camera2Interop
-import androidx.camera.core.AspectRatio
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.core.SurfaceRequest
 import androidx.camera.core.TorchState
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
@@ -77,6 +78,11 @@ class FitatuBarcodeScanner(
 	private fun configureCamera(
 		options: ScannerOptions, processCameraProvider: ProcessCameraProvider,
 	) = processCameraProvider.runCatching {
+		val resolutionSelector = ResolutionSelector
+			.Builder()
+			.setAspectRatioStrategy(AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY)
+			.build()
+
 		val imageAnalysis = ImageAnalysis.Builder()
 			.apply {
 				Camera2Interop.Extender(this).apply {
@@ -90,13 +96,14 @@ class FitatuBarcodeScanner(
 //                    setCaptureRequestOption(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, -8)
 				}
 			}
-			.setTargetAspectRatio(AspectRatio.RATIO_16_9)
+			.setResolutionSelector(resolutionSelector)
 			.setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
 			.build()
 			.apply {
+				var previousCameraImage: CameraImage? = null
+
 				setAnalyzer(Executors.newSingleThreadExecutor()) { image ->
 					val cropSize = image.height.times(options.cropPercent).toInt()
-
 					val cropRect = Rect(
 						(image.width - cropSize) / 2,
 						(image.height - cropSize) / 2,
@@ -117,14 +124,17 @@ class FitatuBarcodeScanner(
 						rotationDegrees = image.imageInfo.rotationDegrees.toLong()
 					)
 
-					ContextCompat.getMainExecutor(context).execute {
-						flutterApi.onCameraImage(cameraImage) {}
+					if (previousCameraImage != cameraImage) {
+						previousCameraImage = cameraImage
+						ContextCompat.getMainExecutor(context).execute {
+							flutterApi.onCameraImage(cameraImage) {}
+						}
 					}
 
 					try {
 						val result = barcodeReader.read(image)
-						val code = result?.text?.trim()?.takeIf { it.isNotBlank() }
-						val format = when (result?.format) {
+						val code = result?.text?.trim()?.takeIf { it.isNotBlank() } ?: return@setAnalyzer
+						val format = when (result.format) {
 							BarcodeReader.Format.AZTEC -> FitatuBarcodeFormat.AZTEC
 							BarcodeReader.Format.CODABAR -> FitatuBarcodeFormat.CODABAR
 							BarcodeReader.Format.CODE_39 -> FitatuBarcodeFormat.CODE39
@@ -142,7 +152,7 @@ class FitatuBarcodeScanner(
 							BarcodeReader.Format.MICRO_QR_CODE -> FitatuBarcodeFormat.MICRO_QR_CODE
 							BarcodeReader.Format.UPC_A -> FitatuBarcodeFormat.UPC_A
 							BarcodeReader.Format.UPC_E -> FitatuBarcodeFormat.UPC_E
-							null, BarcodeReader.Format.NONE -> FitatuBarcodeFormat.UNKNOWN
+							BarcodeReader.Format.NONE -> FitatuBarcodeFormat.UNKNOWN
 						}
 
 						ContextCompat.getMainExecutor(context).execute {
@@ -156,9 +166,8 @@ class FitatuBarcodeScanner(
 				}
 			}
 
-
 		val preview = Preview.Builder()
-			.setTargetAspectRatio(AspectRatio.RATIO_16_9)
+			.setResolutionSelector(resolutionSelector)
 			.build()
 
 		val cameraSelector = CameraSelector.Builder()
@@ -171,6 +180,9 @@ class FitatuBarcodeScanner(
 				flutterApi.onTorchStateChanged(it == TorchState.ON) {}
 			}
 		}
+
+		var previousCameraConfig: CameraConfig? = null
+
 
 		preview.setSurfaceProvider { request ->
 			val (textureId, surfaceTexture) = constructSurfaceTexture()
@@ -193,13 +205,17 @@ class FitatuBarcodeScanner(
 					}
 				}
 			}
-			flutterApi.onTextureChanged(
-				CameraConfig(
-					textureId,
-					request.resolution.width.toLong(),
-					request.resolution.height.toLong()
-				)
-			) {}
+
+			val cameraConfig = CameraConfig(
+				textureId,
+				request.resolution.width.toLong(),
+				request.resolution.height.toLong()
+			)
+
+			if (previousCameraConfig != cameraConfig) {
+				previousCameraConfig = cameraConfig
+				flutterApi.onTextureChanged(cameraConfig) {}
+			}
 		}
 	}
 
