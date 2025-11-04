@@ -6,9 +6,9 @@ import 'package:fitatu_barcode_scanner/fitatu_barcode_scanner.dart';
 import 'package:fitatu_barcode_scanner/src/infra/android/camera_permissions_guard.dart';
 import 'package:fitatu_barcode_scanner/src/pigeons/fitatu_barcode_scanner.pigeon.dart';
 import 'package:fitatu_barcode_scanner/src/scanner_preview_mixin.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 part 'infra/android/android_fitatu_scanner_preview.dart';
