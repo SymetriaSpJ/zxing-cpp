@@ -317,8 +317,22 @@ class _ErrorWidgetState extends State<_ErrorWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text(widget.exception.toString()),
+    return Container(
+      alignment: Alignment.center,
+      color: Colors.black,
+      child: kDebugMode
+          ? SingleChildScrollView(
+              child: Text(
+                widget.exception.toString(),
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: Colors.white),
+              ),
+            )
+          : Icon(
+              Icons.warning,
+              color: Colors.white,
+            ),
     );
   }
 }

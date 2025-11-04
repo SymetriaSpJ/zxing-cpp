@@ -52,7 +52,6 @@ class FitatuBarcodeScannerPreviewState extends State<FitatuBarcodeScannerPreview
               onChanged: widget.onChanged,
               onError: widget.onError,
               overlayBuilder: widget.previewOverlayBuilder,
-              // TODO: Preview error builder
             ),
           );
         } else if (Platform.isIOS) {
