@@ -27,24 +27,21 @@ class _FitatuBarcodeScanner extends FitatuBarcodeScannerHostApi with ChangeNotif
 
   FitatuBarcodeScannerResultCallback? onResult;
   FitatuBarcodeScannerErrorCallback? onError;
+
   bool _isTorchEnabled = false;
   bool get isTorchEnabled => _isTorchEnabled;
-  CameraConfig? _cameraConfig;
-  CameraConfig? get cameraConfig => _cameraConfig;
-  FitatuBarcodeScannerResult? _result;
-  FitatuBarcodeScannerResult? get result => _result;
-  String? _error;
-  String? get error => _error;
+
   CameraImage? _cameraImage;
   CameraImage? get cameraImage => _cameraImage;
+
+  CameraConfig? _cameraConfig;
+  CameraConfig? get cameraConfig => _cameraConfig;
 
   @override
   Future<void> release() async {
     _isTorchEnabled = false;
-    _cameraConfig = null;
-    _result = null;
-    _error = null;
     _cameraImage = null;
+    _cameraConfig = null;
     notifyListeners();
     await _api.release();
   }
@@ -64,10 +61,7 @@ class _FitatuBarcodeScanner extends FitatuBarcodeScannerHostApi with ChangeNotif
   @protected
   @override
   void onScanResult(String? code, FitatuBarcodeFormat format) {
-    _result = FitatuBarcodeScannerResult(code, format);
-    _error = null;
-    onResult?.call(_result!);
-    notifyListeners();
+    onResult?.call(FitatuBarcodeScannerResult(code, format));
   }
 
   @override
@@ -83,9 +77,7 @@ class _FitatuBarcodeScanner extends FitatuBarcodeScannerHostApi with ChangeNotif
   @protected
   @override
   void onScanError(String error) {
-    _error = error;
     onError?.call(FitatuBarcodeScannerException(error), StackTrace.current);
-    notifyListeners();
   }
 
   @protected

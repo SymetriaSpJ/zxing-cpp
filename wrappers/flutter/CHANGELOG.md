@@ -1,3 +1,8 @@
+## 5.2.0
+* Android: bumped CameraX to `1.5.1`, leveraging `ResolutionSelector` for a consistent 16:9 analyzer/preview pipeline.
+* Android: cache and diff camera textures/images so Flutter only rebuilds when the feed really changes; fire `onChanged` after the first frame to keep overlays in sync.
+* API: regenerate the Pigeon bindings with v26.0.1, drop empty barcode readings, and surface `onScanResult` with a non-null `code`.
+
 ## 5.1.0
 * Breaking: `FitatuBarcodeScannerErrorCallback` now receives a `FitatuBarcodeScannerException` and `StackTrace`; iOS `MobileScanner` errors surface through the callback.
 * Guarded the iOS `MobileScannerController` lifecycle to prevent duplicate start/stop calls, restart on resume, and report failures via the preview error builder.

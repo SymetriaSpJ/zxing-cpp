@@ -24,7 +24,7 @@ abstract class FitatuBarcodeScannerFlutterApi {
   void onTextureChanged(CameraConfig? cameraConfig);
   void onTorchStateChanged(bool isEnabled);
   void onCameraImage(CameraImage cameraImage);
-  void onScanResult(String? code, FitatuBarcodeFormat format);
+  void onScanResult(String code, FitatuBarcodeFormat format);
   void onScanError(String error);
 }
 
