@@ -175,5 +175,29 @@ void main() {
         throwsA(isA<ResourceLeaseManagerException>()),
       );
     });
+
+    test('releasing before creation completes runs callback', () async {
+      final manager = ResourceLeaseManager(maxQueueLength: 1);
+
+      bool created = false;
+      bool released = false;
+
+      final lease = manager.lease<int>(
+        create: () async {
+          await Future.delayed(Duration(milliseconds: 100));
+          created = true;
+          return 0;
+        },
+        release: (resource) async {
+          released = true;
+        },
+      )..release();
+
+      await lease.resource;
+      await lease.releaseWaiting();
+
+      expect(created, isTrue, reason: "The `create` callback was not called");
+      expect(released, isTrue, reason: "The `release` callback was not called");
+    });
   });
 }
