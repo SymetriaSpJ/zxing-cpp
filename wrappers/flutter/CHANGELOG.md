@@ -1,3 +1,6 @@
+## 5.2.1
+* Fix the `ResourceLeaseManager` so a release call made before creation still waits for creation and runs the release callback.
+
 ## 5.2.0
 * Android: bumped CameraX to `1.5.1`, leveraging `ResolutionSelector` for a consistent 16:9 analyzer/preview pipeline.
 * Android: cache and diff camera textures/images so Flutter only rebuilds when the feed really changes; fire `onChanged` after the first frame to keep overlays in sync.

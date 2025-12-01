@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:collection';
 
+import 'package:flutter/foundation.dart';
+
 /// Asynchronous factory invoked when a lease becomes active.
 ///
 /// - Called when the lease reaches the front of the queue.
@@ -188,17 +190,29 @@ final class ResourceLease<T extends Object> {
 
     const tag = '_release';
 
+    T? resource;
+
     try {
-      if (value case final value?) {
-        _parent._log('ResourceLease', 'releasing resource; lease=$this');
-        await _withTimeout(
-          _measureTime(_releaseCallback(value), tag),
-          _parent.releaseTimeout,
-          tag,
-        );
-      } else {
-        _parent._log('ResourceLease', 'released before resource creation; no-op; lease=$this');
-      }
+      _parent._log('ResourceLease', 'Release scheduled, awaiting resource; op=$tag, lease=$this');
+      resource = await this.resource;
+    } catch (e, st) {
+      _parent._log(
+        'ResourceLease',
+        'Failed to obtain resource to release; op=$tag, lease=$this',
+        error: e,
+        stackTrace: st,
+      );
+    }
+
+    if (resource == null) return;
+
+    try {
+      _parent._log('ResourceLease', 'releasing resource; lease=$this');
+      await _withTimeout(
+        _measureTime(_releaseCallback(resource), tag),
+        _parent.releaseTimeout,
+        tag,
+      );
     } catch (e, st) {
       _parent._log(
         'ResourceLease',
