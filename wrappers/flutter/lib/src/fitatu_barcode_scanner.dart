@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:fitatu_barcode_scanner/fitatu_barcode_scanner.dart';
 import 'package:fitatu_barcode_scanner/src/infra/android/camera_permissions_guard.dart';
+import 'package:fitatu_barcode_scanner/src/infra/common/fitatu_mobile_scanner_platform.dart';
 import 'package:fitatu_barcode_scanner/src/pigeons/fitatu_barcode_scanner.pigeon.dart';
 import 'package:fitatu_barcode_scanner/src/scanner_preview_mixin.dart';
 import 'package:flutter/foundation.dart';
@@ -132,9 +133,12 @@ final class _AndroidBarcodeScanner extends FitatuBarcodeScannerController {
 }
 
 final class _IOSBarcodeScanner extends FitatuBarcodeScannerController {
-  _IOSBarcodeScanner(super.options) : _controller = MobileScannerController(autoStart: false);
+  _IOSBarcodeScanner(super.options) {
+    MobileScannerPlatform.instance = FitatuMobileScannerPlatform();
+    _controller = MobileScannerController(autoStart: false);
+  }
 
-  final MobileScannerController _controller;
+  late final MobileScannerController _controller;
 
   @override
   Future<void> disposeController() => _controller.dispose();

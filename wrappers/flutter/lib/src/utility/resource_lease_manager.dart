@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:collection';
 
-import 'package:flutter/foundation.dart';
-
 /// Asynchronous factory invoked when a lease becomes active.
 ///
 /// - Called when the lease reaches the front of the queue.
