@@ -1,3 +1,6 @@
+## 5.2.2
+* iOS: lock the `mobile_scanner` orientation to portrait-up to prevent rotated camera previews.
+
 ## 5.2.1
 * Fix the `ResourceLeaseManager` so a release call made before creation still waits for creation and runs the release callback.
 
