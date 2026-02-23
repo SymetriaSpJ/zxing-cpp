@@ -1,3 +1,6 @@
+## 5.2.3
+* Locked `mobile_scanner` to `7.1.3`
+
 ## 5.2.2
 * iOS: lock the `mobile_scanner` orientation to portrait-up to prevent rotated camera previews.
 
