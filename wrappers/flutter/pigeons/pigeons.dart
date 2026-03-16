@@ -50,8 +50,14 @@ enum FitatuBarcodeFormat {
   /// DataBar Expanded 1D barcode format, stores more data, used for coupons.
   dataBarExpanded,
 
+  /// DataBar Limited 1D barcode format, used in healthcare and coupons.
+  dataBarLimited,
+
   /// Data Matrix 2D barcode format, used for marking small items.
   dataMatrix,
+
+  /// DX Film Edge barcode format, used in photographic film.
+  dxFilmEdge,
 
   /// EAN-8 1D barcode format, short version of EAN-13, used on small packages.
   ean8,
@@ -73,6 +79,9 @@ enum FitatuBarcodeFormat {
 
   /// Micro QR Code 2D barcode format, smaller version of QR Code.
   microQrCode,
+
+  /// Rectangular Micro QR Code (rMQR) 2D barcode format.
+  rmqrCode,
 
   /// UPC-A 1D barcode format, used for retail products in North America.
   upcA,

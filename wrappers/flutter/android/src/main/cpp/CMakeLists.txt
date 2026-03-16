@@ -1,11 +1,12 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.16)
 project(ZXingAndroid)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(BUILD_READERS ON)
-set(BUILD_WRITERS OFF)
+set(ZXING_READERS ON)
+set(ZXING_WRITERS OFF)
+set(ZXING_EXPERIMENTAL_API ON CACHE BOOL "Enable ZXing experimental API")
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../core ZXing EXCLUDE_FROM_ALL)
 

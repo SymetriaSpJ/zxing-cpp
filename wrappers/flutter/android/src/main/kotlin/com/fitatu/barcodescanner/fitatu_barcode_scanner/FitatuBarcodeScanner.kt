@@ -48,7 +48,7 @@ class FitatuBarcodeScanner(
 		this.options = options
 		barcodeReader.options = BarcodeReader.Options(
 			formats = if (options.qrCode) setOf(
-				BarcodeReader.Format.QR_CODE, BarcodeReader.Format.MICRO_QR_CODE
+				BarcodeReader.Format.QR_CODE, BarcodeReader.Format.MICRO_QR_CODE, BarcodeReader.Format.RMQR_CODE
 			) else emptySet(),
 			tryHarder = options.tryHarder,
 			tryInvert = options.tryInvert,
@@ -132,7 +132,7 @@ class FitatuBarcodeScanner(
 					}
 
 					try {
-						val result = barcodeReader.read(image)
+						val result = barcodeReader.read(image).firstOrNull()
 						val code = result?.text?.trim()?.takeIf { it.isNotBlank() } ?: return@setAnalyzer
 						val format = when (result.format) {
 							BarcodeReader.Format.AZTEC -> FitatuBarcodeFormat.AZTEC
@@ -152,6 +152,9 @@ class FitatuBarcodeScanner(
 							BarcodeReader.Format.MICRO_QR_CODE -> FitatuBarcodeFormat.MICRO_QR_CODE
 							BarcodeReader.Format.UPC_A -> FitatuBarcodeFormat.UPC_A
 							BarcodeReader.Format.UPC_E -> FitatuBarcodeFormat.UPC_E
+							BarcodeReader.Format.DATA_BAR_LIMITED -> FitatuBarcodeFormat.DATA_BAR_LIMITED
+							BarcodeReader.Format.DX_FILM_EDGE -> FitatuBarcodeFormat.DX_FILM_EDGE
+							BarcodeReader.Format.RMQR_CODE -> FitatuBarcodeFormat.RMQR_CODE
 							BarcodeReader.Format.NONE -> FitatuBarcodeFormat.UNKNOWN
 						}
 

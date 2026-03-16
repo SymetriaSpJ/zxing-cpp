@@ -1,18 +1,7 @@
 /*
 * Copyright 2021 Axel Waggershauser
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*      http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
 */
+// SPDX-License-Identifier: Apache-2.0
 
 package com.zxingcpp
 
@@ -20,116 +9,139 @@ import android.graphics.Bitmap
 import android.graphics.ImageFormat
 import android.graphics.Point
 import android.graphics.Rect
+import android.os.Build
 import androidx.camera.core.ImageProxy
-import java.lang.RuntimeException
 import java.nio.ByteBuffer
 
-class BarcodeReader {
+public class BarcodeReader(public var options: Options = Options()) {
+	private val supportedYUVFormats: List<Int> =
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			listOf(ImageFormat.YUV_420_888, ImageFormat.YUV_422_888, ImageFormat.YUV_444_888)
+		} else {
+			listOf(ImageFormat.YUV_420_888)
+		}
 
-    // Enumerates barcode formats known to this package.
-    // Note that this has to be kept synchronized with native (C++/JNI) side.
-    enum class Format {
-        NONE, AZTEC, CODABAR, CODE_39, CODE_93, CODE_128, DATA_BAR, DATA_BAR_EXPANDED,
-        DATA_MATRIX, EAN_8, EAN_13, ITF, MAXICODE, PDF_417, QR_CODE, MICRO_QR_CODE, UPC_A, UPC_E
-    }
-    enum class ContentType {
-        TEXT, BINARY, MIXED, GS1, ISO15434, UNKNOWN_ECI
-    }
+	init {
+		System.loadLibrary("zxing_android")
+	}
 
-    data class Options(
-        val formats: Set<Format> = setOf(),
-        val tryHarder: Boolean = false,
-        val tryRotate: Boolean = false,
-        val tryInvert: Boolean = false,
-        val tryDownscale: Boolean = false
-    )
+	// Enumerates barcode formats known to this package.
+	// Note that this has to be kept synchronized with native (C++/JNI) side.
+	public enum class Format {
+		NONE, AZTEC, CODABAR, CODE_39, CODE_93, CODE_128, DATA_BAR, DATA_BAR_EXPANDED, DATA_BAR_LIMITED,
+		DATA_MATRIX, DX_FILM_EDGE, EAN_8, EAN_13, ITF, MAXICODE, PDF_417, QR_CODE, MICRO_QR_CODE, RMQR_CODE, UPC_A, UPC_E
+	}
 
-    data class Position(
-        val topLeft: Point,
-        val topRight: Point,
-        val bottomLeft: Point,
-        val bottomRight: Point,
-        val orientation: Double
-    )
+	public enum class ContentType {
+		TEXT, BINARY, MIXED, GS1, ISO15434, UNKNOWN_ECI
+	}
 
-    data class Result(
-        val format: Format = Format.NONE,
-        val bytes: ByteArray? = null,
-        val text: String? = null,
-        val time: String? = null, // for development/debug purposes only
-        val contentType: ContentType = ContentType.TEXT,
-        val position: Position? = null,
-        val orientation: Int = 0,
-        val ecLevel: String? = null,
-        val symbologyIdentifier: String? = null
-    )
+	public enum class Binarizer {
+		LOCAL_AVERAGE, GLOBAL_HISTOGRAM, FIXED_THRESHOLD, BOOL_CAST
+	}
 
-    var options : Options = Options()
+	public enum class EanAddOnSymbol {
+		IGNORE, READ, REQUIRE
+	}
 
-    fun read(image: ImageProxy): Result? {
-        val supportedYUVFormats = arrayOf(ImageFormat.YUV_420_888, ImageFormat.YUV_422_888, ImageFormat.YUV_444_888)
-        if (image.format !in supportedYUVFormats) {
-            error("invalid image format")
-        }
+	public enum class TextMode {
+		PLAIN, ECI, HRI, ESCAPED, HEX, HEXECI
+	}
 
-        var result = Result()
-        val status = image.use {
-            readYBuffer(
-                it.planes[0].buffer,
-                it.planes[0].rowStride,
-                it.cropRect.left,
-                it.cropRect.top,
-                it.cropRect.width(),
-                it.cropRect.height(),
-                it.imageInfo.rotationDegrees,
-                options.formats.joinToString(),
-                options.tryHarder,
-                options.tryRotate,
-                options.tryInvert,
-                options.tryDownscale,
-                result
-            )
-        }
-        return try {
-            result.copy(format = Format.valueOf(status!!))
-        } catch (e: Throwable) {
-            if (status == "NotFound") null else throw RuntimeException(status!!)
-        }
-    }
+	public enum class ErrorType {
+		FORMAT, CHECKSUM, UNSUPPORTED
+	}
 
-    fun read(bitmap: Bitmap, cropRect: Rect = Rect(), rotation: Int = 0): Result? {
-        return read(bitmap, options, cropRect, rotation)
-    }
+	public data class Options(
+		var formats: Set<Format> = setOf(),
+		var tryHarder: Boolean = false,
+		var tryRotate: Boolean = false,
+		var tryInvert: Boolean = false,
+		var tryDownscale: Boolean = false,
+		var tryDenoise: Boolean = false,
+		var isPure: Boolean = false,
+		var binarizer: Binarizer = Binarizer.LOCAL_AVERAGE,
+		var downscaleFactor: Int = 3,
+		var downscaleThreshold: Int = 500,
+		var minLineCount: Int = 2,
+		var maxNumberOfSymbols: Int = 0xff,
+		var validateOptionalChecksum: Boolean = false,
+		@Deprecated("See https://github.com/zxing-cpp/zxing-cpp/discussions/704")
+		var tryCode39ExtendedMode: Boolean = true,
+		@Deprecated("Use validateOptionalChecksum")
+		var validateCode39CheckSum: Boolean = false,
+		@Deprecated("Use validateOptionalChecksum")
+		var validateITFCheckSum: Boolean = false,
+		var returnErrors: Boolean = false,
+		var eanAddOnSymbol: EanAddOnSymbol = EanAddOnSymbol.IGNORE,
+		var textMode: TextMode = TextMode.HRI,
+	)
 
-    fun read(bitmap: Bitmap, options: Options, cropRect: Rect = Rect(), rotation: Int = 0): Result? {
-        var result = Result()
-        val status = with(options) {
-            readBitmap(
-                bitmap, cropRect.left, cropRect.top, cropRect.width(), cropRect.height(), rotation,
-                formats.joinToString(), tryHarder, tryRotate, tryInvert, tryDownscale, result
-            )
-        }
-        return try {
-            result.copy(format = Format.valueOf(status!!))
-        } catch (e: Throwable) {
-            if (status == "NotFound") null else throw RuntimeException(status!!)
-        }
-    }
+	public data class Error(
+		val type: ErrorType,
+		val message: String
+	)
 
-    // setting the format enum from inside the JNI code is a hassle -> use returned String instead
-    private external fun readYBuffer(
-        yBuffer: ByteBuffer, rowStride: Int, left: Int, top: Int, width: Int, height: Int, rotation: Int,
-        formats: String, tryHarder: Boolean, tryRotate: Boolean, tryInvert: Boolean, tryDownscale: Boolean,
-        result: Result,
-    ): String?
+	public data class Position(
+		val topLeft: Point,
+		val topRight: Point,
+		val bottomRight: Point,
+		val bottomLeft: Point,
+		val orientation: Double
+	)
 
-    private external fun readBitmap(
-        bitmap: Bitmap, left: Int, top: Int, width: Int, height: Int, rotation: Int,
-        formats: String, tryHarder: Boolean, tryRotate: Boolean, tryInvert: Boolean, tryDownscale: Boolean,
-        result: Result,
-    ): String?
+	public data class Result(
+		val format: Format,
+		val bytes: ByteArray?,
+		val text: String?,
+		val contentType: ContentType,
+		val position: Position,
+		val orientation: Int,
+		val ecLevel: String?,
+		val symbologyIdentifier: String?,
+		val sequenceSize: Int,
+		val sequenceIndex: Int,
+		val sequenceId: String?,
+		val readerInit: Boolean,
+		val lineCount: Int,
+		val error: Error?,
+	)
 
-    init {
-        System.loadLibrary("zxing_android")
-    }
+	public val lastReadTime: Int = 0 // runtime of last read call in ms (for debugging purposes only)
+
+	public fun read(image: ImageProxy): List<Result> {
+		var result: List<Result> = emptyList()
+		image.use {
+			check(it.format in supportedYUVFormats) {
+				"Invalid image format: ${it.format}. Must be one of: $supportedYUVFormats"
+			}
+			result = readYBuffer(
+				it.planes[0].buffer,
+				it.planes[0].rowStride,
+				it.cropRect.left,
+				it.cropRect.top,
+				it.cropRect.width(),
+				it.cropRect.height(),
+				it.imageInfo.rotationDegrees,
+				options
+			)
+		}
+		return result
+	}
+
+	public fun read(
+		bitmap: Bitmap, cropRect: Rect = Rect(), rotation: Int = 0
+	): List<Result> {
+		return readBitmap(
+			bitmap, cropRect.left, cropRect.top, cropRect.width(), cropRect.height(), rotation, options
+		)
+	}
+
+	private external fun readYBuffer(
+		yBuffer: ByteBuffer, rowStride: Int, left: Int, top: Int, width: Int, height: Int, rotation: Int, options: Options
+	): List<Result>
+
+	private external fun readBitmap(
+		bitmap: Bitmap, left: Int, top: Int, width: Int, height: Int, rotation: Int, options: Options
+	): List<Result>
 }
