@@ -32,7 +32,7 @@ static const char* JavaBarcodeFormatName(BarcodeFormat format)
 	case BarcodeFormat::QRCode: return "QR_CODE";
 	case BarcodeFormat::MicroQRCode: return "MICRO_QR_CODE";
 	case BarcodeFormat::DataBar: return "DATA_BAR";
-	case BarcodeFormat::DataBarExpanded: return "DATA_BAR_EXPANDED";
+	case BarcodeFormat::DataBarExp: return "DATA_BAR_EXPANDED";
 	case BarcodeFormat::UPCA: return "UPC_A";
 	case BarcodeFormat::UPCE: return "UPC_E";
 	default: throw std::invalid_argument("Invalid format");
@@ -99,7 +99,7 @@ jstring Read(JNIEnv *env, ImageView image, jstring formats, jboolean tryHarder, 
 			 jboolean tryInvert, jboolean tryDownscale, jobject result)
 {
 	try {
-		auto hints = DecodeHints()
+		auto hints = ReaderOptions()
 						 .setFormats(BarcodeFormatsFromString(J2CString(env, formats)))
 						 .setTryHarder(tryHarder)
 						 .setTryRotate(tryRotate)
@@ -201,7 +201,7 @@ Java_com_zxingcpp_BarcodeReader_readBitmap(
 	ImageFormat fmt = ImageFormat::None;
 	switch (bmInfo.format) {
 	case ANDROID_BITMAP_FORMAT_A_8: fmt = ImageFormat::Lum; break;
-	case ANDROID_BITMAP_FORMAT_RGBA_8888: fmt = ImageFormat::RGBX; break;
+	case ANDROID_BITMAP_FORMAT_RGBA_8888: fmt = ImageFormat::RGBA; break;
 	default: return ThrowJavaException(env, "Unsupported format");
 	}
 

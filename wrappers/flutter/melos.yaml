@@ -9,5 +9,5 @@ command:
   bootstrap:
     usePubspecOverrides: true
     environment:
-      sdk: ">=3.8.1 <4.0.0"
-      flutter: ">=3.35.5"
+      sdk: ">=3.10.4 <4.0.0"
+      flutter: ">=3.38.5"
