@@ -9,12 +9,17 @@
 
 #include "Barcode.h"
 #include "BarcodeFormat.h"
+
+#ifdef ZXING_INTERNAL
 #include "ZXAlgorithms.h"
+#endif
 
 #include <string>
+#include <string_view>
 
 namespace ZXing::GTIN {
 
+#ifdef ZXING_INTERNAL
 template <typename T>
 T ComputeCheckDigit(const std::basic_string<T>& digits, bool skipTail = false)
 {
@@ -32,8 +37,8 @@ bool IsCheckDigitValid(const std::basic_string<T>& s)
 {
 	return ComputeCheckDigit(s, true) == s.back();
 }
+#endif
 
-//TODO: use std::string_view in 3.0
 /**
  * Evaluate the prefix of the GTIN to estimate the country of origin. See
  * <a href="https://www.gs1.org/standards/id-keys/company-prefix">
@@ -43,7 +48,7 @@ bool IsCheckDigitValid(const std::basic_string<T>& s)
  *
  * `format` required for EAN-8 (UPC-E assumed if not given)
  */
-std::string LookupCountryIdentifier(const std::string& GTIN, const BarcodeFormat format = BarcodeFormat::None);
+std::string LookupCountryIdentifier(std::string_view GTIN, BarcodeFormat format = BarcodeFormat::None);
 
 std::string EanAddOn(const Barcode& barcode);
 

@@ -7,12 +7,12 @@
 #include "BlackboxTestRunner.h"
 #include "ImageLoader.h"
 #include "ReadBarcode.h"
+#include "StdPrint.h"
 #include "ZXAlgorithms.h"
 
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
-#include <iostream>
 #include <set>
 
 using namespace ZXing;
@@ -27,25 +27,25 @@ int getEnv(const char* name, int fallback = 0)
 int main(int argc, char** argv)
 {
 	if (argc <= 1) {
-		std::cout << "Usage: " << argv[0] << " <test_path_prefix>" << std::endl;
+		std::println("Usage: {} <test_path_prefix>", argv[0]);
 		return 0;
 	}
 
 	fs::path pathPrefix = argv[1];
 
 	if (Contains({".png", ".jpg", ".pgm", ".gif"}, pathPrefix.extension())) {
-		auto opts = ReaderOptions().setTryHarder(!getEnv("FAST", false)).setTryRotate(true).setIsPure(getEnv("IS_PURE"));
+		auto opts = ReaderOptions().tryHarder(!getEnv("FAST", false)).tryRotate(true).isPure(getEnv("IS_PURE"));
 		if (getenv("FORMATS"))
-			opts.setFormats(BarcodeFormatsFromString(getenv("FORMATS")));
+			opts.formats(BarcodeFormatsFromString(getenv("FORMATS")));
 		int rotation = getEnv("ROTATION");
 
 		for (int i = 1; i < argc; ++i) {
 			Barcode barcode = ReadBarcode(ImageLoader::load(argv[i]).rotated(rotation), opts);
-			std::cout << argv[i] << ": ";
+			std::print("{}: ", argv[i]);
 			if (barcode.isValid())
-				std::cout << ToString(barcode.format()) << ": " << barcode.text() << "\n";
+				std::println("{}: {}", ToString(barcode.format()), barcode.text());
 			else
-				std::cout << "FAILED\n";
+				std::println("FAILED");
 			if (barcode.isValid() && getenv("WRITE_TEXT")) {
 				std::ofstream f(fs::path(argv[i]).replace_extension(".txt"));
 				f << barcode.text();

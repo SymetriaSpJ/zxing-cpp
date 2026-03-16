@@ -4,14 +4,18 @@ project(ZXing)
 
 option (ZXING_READERS "Build with reader support (decoders)" ON)
 set    (ZXING_WRITERS "ON" CACHE STRING "Build with old and/or new writer (encoder) backend (OFF/ON/OLD/NEW/BOTH)")
-option (ZXING_USE_BUNDLED_ZINT "Use the bundled libzint for barcode creation/writing" ON)
-option (ZXING_C_API "Build the C-API" OFF)
+option (ZXING_C_API "Build the C-API" ON)
 option (ZXING_EXPERIMENTAL_API "Build with experimental API" OFF)
 option (ZXING_EXAMPLES "Build the example barcode reader/writer applications" ON)
+option (ZXING_EXAMPLES_QT "Build the Qt based example barcode reader/writer applications" OFF)
 option (ZXING_BLACKBOX_TESTS "Build the black box reader/writer tests" OFF)
 option (ZXING_UNIT_TESTS "Build the unit tests (don't enable for production builds)" OFF)
+option (ZXING_TEST_DOTNET "Test if the .NET wrapper works" OFF)
+option (ZXING_TEST_GO "Test if the Go wrapper works" OFF)
+option (ZXING_TEST_INSTALL "Test if the installed/public API works" OFF)
 option (ZXING_PYTHON_MODULE "Build the python module" OFF)
 set    (ZXING_DEPENDENCIES "AUTO" CACHE STRING "Fetch from github or use locally installed (AUTO/GITHUB/LOCAL)")
+option (ZXING_CLANG_TIDY "Enable clang-tidy analysis" OFF)
 
 if (WIN32)
     option (BUILD_SHARED_LIBS "Build and link as shared library" OFF)
@@ -34,26 +38,6 @@ if (NOT CMAKE_BUILD_TYPE)
     set_property (CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-# provide backward compatibility for deprecated BUILD_... options
-if (DEFINED BUILD_READERS)
-    set (ZXING_READERS ${BUILD_READERS})
-endif()
-if (DEFINED BUILD_WRITERS)
-    set (ZXING_WRITERS ${BUILD_WRITERS})
-endif()
-if (DEFINED BUILD_EXAMPLES)
-    message (WARNING "zxing-cpp cmake options BUILD_... are deprecated, please switch to ZXING_... variant")
-    set (ZXING_EXAMPLES ${BUILD_EXAMPLES})
-endif()
-if (DEFINED BUILD_PYTHON_MODULE)
-    message (WARNING "zxing-cpp cmake options BUILD_... are deprecated, please switch to ZXING_... variant")
-    set (ZXING_PYTHON_MODULE ${BUILD_PYTHON_MODULE})
-endif()
-if (DEFINED BUILD_DEPENDENCIES)
-    message (WARNING "zxing-cpp cmake options BUILD_... are deprecated, please switch to ZXING_... variant")
-    set (ZXING_DEPENDENCIES ${BUILD_DEPENDENCIES})
-endif()
-
 if (NOT (ZXING_READERS OR ZXING_WRITERS))
     message(FATAL_ERROR "At least one of ZXING_READERS/ZXING_WRITERS must be enabled.")
 endif()
@@ -72,14 +56,29 @@ endif()
 
 if (NOT DEFINED CMAKE_CXX_STANDARD)
     set (CMAKE_CXX_STANDARD 20)
-    # Allow the fallback to earlier versions if the compiler does not support it.
-    set(CMAKE_CXX_STANDARD_REQUIRED OFF)
-endif()
-if (NOT DEFINED CMAKE_CXX_EXTENSIONS)
+    set (CMAKE_CXX_STANDARD_REQUIRED ON)
     set (CMAKE_CXX_EXTENSIONS OFF)
 endif()
 
+set(CMAKE_COLOR_DIAGNOSTICS ON)
+
+if (ZXING_CLANG_TIDY)
+    find_program(CMAKE_CXX_CLANG_TIDY NAMES "clang-tidy" DOC "Path to clang-tidy executable")
+    if (NOT CMAKE_CXX_CLANG_TIDY)
+        message(WARNING "clang-tidy not found.")
+    else()
+        message(STATUS "clang-tidy found: ${CMAKE_CXX_CLANG_TIDY}")
+        set(ZXING_DISABLE_PCH ON)
+    endif()
+endif()
+
+# make installed binaries relocatable on macOS and Linux
+set(CMAKE_BUILD_RPATH_USE_ORIGIN ON)  # improve build reproducibility
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+set(CMAKE_INSTALL_RPATH "$<$<PLATFORM_ID:Darwin>:@loader_path/../lib>$<$<PLATFORM_ID:Linux>:$ORIGIN/../lib>")
+
 add_subdirectory (core)
+add_subdirectory (docs)
 
 enable_testing()
 
@@ -88,11 +87,31 @@ include(zxing.cmake)
 if (ZXING_EXAMPLES)
     add_subdirectory (example)
 endif()
+if (ZXING_EXAMPLES_QT)
+    add_subdirectory (wrappers/qt)
+endif()
 if (ZXING_BLACKBOX_TESTS)
     add_subdirectory (test/blackbox)
 endif()
 if (ZXING_UNIT_TESTS)
     add_subdirectory (test/unit)
+endif()
+if (ZXING_TEST_DOTNET)
+    add_subdirectory (wrappers/dotnet)
+endif()
+if (ZXING_TEST_GO)
+    add_subdirectory (wrappers/go)
+endif()
+if (ZXING_TEST_INSTALL)
+    add_test(
+        NAME InstallTest
+        COMMAND
+            ${CMAKE_COMMAND}
+            -DPROJECT_BINARY_DIR=${CMAKE_BINARY_DIR}
+            -DSOURCE_DIR=${CMAKE_SOURCE_DIR}/test/install
+            -DZXING_WRITERS=${ZXING_WRITERS}
+            -P ${CMAKE_SOURCE_DIR}/test/install/run.cmake
+    )
 endif()
 if (ZXING_PYTHON_MODULE)
     add_subdirectory (wrappers/python)

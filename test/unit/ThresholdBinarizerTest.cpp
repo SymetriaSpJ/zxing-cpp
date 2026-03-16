@@ -94,11 +94,12 @@ TEST(ThresholdBinarizerTest, PatternRowClear)
 				"01000111000101111010011000000000101011110100111000010";
 
 	bits = ParseBitMatrix(bitstream, 53 /*width*/);
-	opts.setFormats(BarcodeFormat::DataBarExpanded);
-	opts.setMinLineCount(1);
+	opts.formats(BarcodeFormat::DataBarExp);
+	opts.minLineCount(1);
 	OneD::Reader reader(opts);
 
-	auto barcode = reader.decode(ThresholdBinarizer(getImageView(buf, bits), 0x7F));
-	EXPECT_TRUE(barcode.isValid());
-	EXPECT_EQ(barcode.text(TextMode::HRI), "(91)12345678901234567890123456789012345678901234567890123456789012345678");
+	auto barcodes = reader.read(ThresholdBinarizer(getImageView(buf, bits), 0x7F), 1);
+	EXPECT_TRUE(barcodes.size() == 1);
+	if (barcodes.size())
+		EXPECT_EQ(barcodes[0].content.text(TextMode::HRI), "(91)12345678901234567890123456789012345678901234567890123456789012345678");
 }

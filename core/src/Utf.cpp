@@ -13,15 +13,9 @@
 #include <iomanip>
 #include <cstdint>
 #include <sstream>
-
-#if __cplusplus <= 201703L
-#include "Range.h"
-using char8_t = uint8_t;
-using utf8_t = ZXing::ArrayView<char8_t>;
-#else
 #include <string_view>
+
 using utf8_t = std::u8string_view;
-#endif
 
 namespace ZXing {
 
@@ -118,6 +112,18 @@ static void AppendFromUtf8(utf8_t utf8, std::wstring& buffer)
 	}
 }
 
+bool IsValidUtf8(ByteView bytes)
+{
+	state_t state = kAccepted;
+	char32_t codepoint = 0;
+	for (int value : bytes) {
+		Utf8Decode(value, state, codepoint);
+		if (state == kRejected)
+			return false;
+	}
+	return state == kAccepted;
+}
+
 std::wstring FromUtf8(std::string_view utf8)
 {
 	std::wstring str;
@@ -125,14 +131,12 @@ std::wstring FromUtf8(std::string_view utf8)
 	return str;
 }
 
-#if __cplusplus > 201703L
 std::wstring FromUtf8(std::u8string_view utf8)
 {
 	std::wstring str;
 	AppendFromUtf8(utf8, str);
 	return str;
 }
-#endif
 
 // Count the number of bytes required to store given code points in UTF-8.
 static size_t Utf8CountBytes(std::wstring_view str)

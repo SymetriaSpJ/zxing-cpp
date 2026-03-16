@@ -1,12 +1,10 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.16)
 project(ZXingCppAndroid)
-
-# The zxing-cpp requires at least C++17 to build
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(ZXING_READERS ON)
 set(ZXING_WRITERS OFF)
+
+set(ZXING_EXPERIMENTAL_API ON CACHE BOOL "Enable ZXing experimental API (hardcoded for this wrapper)")
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../core ZXing EXCLUDE_FROM_ALL)
 

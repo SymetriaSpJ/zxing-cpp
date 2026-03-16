@@ -21,7 +21,7 @@ public class Program
         var iv = new ImageView(img.GetPixels(), img.Info.Width, img.Info.Height, ImageFormat.Lum);
 
         var readBarcodes = new BarcodeReader() {
-            Formats = args.Length > 1 ? Barcode.FormatsFromString(args[1]) : BarcodeFormats.Any,
+            Formats = args.Length > 1 ? BarcodeFormats.Parse(args[1]) : BarcodeFormat.All,
             TryInvert = false,
             // see the ReaderOptions implementation for more available options
         };
@@ -40,14 +40,11 @@ dotnet run -- <image-file-name> [barcode-format-list]
 See also the [ZXingCpp.DemoReader](https://github.com/zxing-cpp/zxing-cpp/blob/master/wrappers/dotnet/ZXingCpp.DemoReader/Program.cs)
 which shows the use of extension classes to support SkiaSharp and ImageMagick based input.
 
-The NuGet package includes the runtime/native c++ libraries for the x64 architecture on
-Windows, Linux and macOS. If something is not working out of the box or you need arm64 support
-then you need to build the `[lib]ZXing[.dll|.so|.dylib]` file yourself and make sure the .NET
-runtime find it (see e.g. the environment variables `LD_LIBRARY_PATH` on Linux or `PATH` on
-Windows).
+The NuGet package includes the runtime/native C++ libraries for x64 and arm64 on
+Windows, Linux and macOS. If something is not working out of the box and you need to override
+library loading, make sure the .NET runtime can find `[lib]ZXing[.dll|.so|.dylib]`
+(see e.g. `LD_LIBRARY_PATH` on Linux or `PATH` on Windows).
 
-Note: This is an alpha release, meaning the API may still change slightly to potentially feel even
-more like a native C# library depending on community feedback.
 
 ## Usage Writing
 
@@ -58,7 +55,7 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        var barcode = new Barcode(args[1], Barcode.FormatFromString(args[0]));
+        var barcode = new Barcode(args[1], BarcodeFormat.Parse(args[0]));
         File.WriteAllText(args[2], barcode.ToSVG());
     }
 }
@@ -89,11 +86,11 @@ an idea: ZXingCpp is on average 2x-10x faster than Dynamsoft and 10x-50x faster 
 
 The benchmarking tool also showed that ZXingCpp has a superior detection rate compared to ZXing.Net while it is
 sometimes better sometimes worse than the commercial Dynamsoft package, depending on the sample type and the
-library configuration. The latter definitively supports more barcode formats compared to the two ZXing decendents.
+library configuration. The latter definitively supports more barcode formats compared to the two ZXing descendents.
 
 ### Ease of use
 
-The sample program above shows the simplicitly of the API. The others are similar but seem a bit more
+The sample program above shows the simplicity of the API. The others are similar but seem a bit more
 complicated with regards to setting parameters.
 
 ### Standards support

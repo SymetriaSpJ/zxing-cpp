@@ -12,6 +12,7 @@
 #include <array>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -24,7 +25,7 @@ class STBImage : public ImageView
 	std::unique_ptr<stbi_uc[], void (*)(void*)> _memory;
 
 public:
-	STBImage() : ImageView(), _memory(nullptr, stbi_image_free) {}
+	STBImage() : _memory(nullptr, stbi_image_free) {}
 
 	void load(const fs::path& imgPath)
 	{
@@ -49,16 +50,17 @@ public:
 };
 
 std::map<fs::path, STBImage> cache;
+std::mutex cacheMutex;
 
 void ImageLoader::clearCache()
 {
+	std::scoped_lock lock(cacheMutex);
 	cache.clear();
 }
 
 const ImageView& ImageLoader::load(const fs::path& imgPath)
 {
-	thread_local std::unique_ptr<BinaryBitmap> localAverage, threshold;
-
+	std::scoped_lock lock(cacheMutex);
 	auto& binImg = cache[imgPath];
 	if (!binImg)
 		binImg.load(imgPath);

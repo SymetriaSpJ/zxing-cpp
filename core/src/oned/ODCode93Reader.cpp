@@ -8,7 +8,8 @@
 #include "ODCode93Reader.h"
 
 #include "ODCode93Patterns.h"
-#include "Barcode.h"
+#include "BarcodeData.h"
+#include "SymbologyIdentifier.h"
 #include "ZXAlgorithms.h"
 
 #include <array>
@@ -28,14 +29,14 @@ static bool
 CheckOneChecksum(const std::string& result, int checkPosition, int weightMax)
 {
 	int weight = 1;
-	int checkSum = 0;
+	int checksum = 0;
 	for (int i = checkPosition - 1; i >= 0; i--) {
-		checkSum += weight * IndexOf(ALPHABET, result[i]);
+		checksum += weight * IndexOf(ALPHABET, result[i]);
 		if (++weight > weightMax) {
 			weight = 1;
 		}
 	}
-	return result[checkPosition] == ALPHABET[checkSum % 47];
+	return result[checkPosition] == ALPHABET[checksum % 47];
 }
 
 static bool
@@ -79,7 +80,7 @@ static bool IsStartGuard(const PatternView& window, int spaceInPixel)
 		   ToInt(NormalizedE2EPattern<CHAR_LEN>(window, CHAR_MODS)) == ASTERISK_ENCODING;
 }
 
-Barcode Code93Reader::decodePattern(int rowNumber, PatternView& next, std::unique_ptr<DecodingState>&) const
+BarcodeData Code93Reader::decodePattern(int rowNumber, PatternView& next, std::unique_ptr<DecodingState>&) const
 {
 	// minimal number of characters that must be present (including start, stop, checksum and 1 payload characters)
 	int minCharCount = 5;
@@ -128,7 +129,7 @@ Barcode Code93Reader::decodePattern(int rowNumber, PatternView& next, std::uniqu
 	SymbologyIdentifier symbologyIdentifier = {'G', '0'};
 
 	int xStop = next.pixelsTillEnd();
-	return Barcode(txt, rowNumber, xStart, xStop, BarcodeFormat::Code93, symbologyIdentifier, error);
+	return LinearBarcode(BarcodeFormat::Code93, txt, rowNumber, xStart, xStop, symbologyIdentifier, error);
 }
 
 } // namespace ZXing::OneD
