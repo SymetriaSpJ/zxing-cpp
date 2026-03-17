@@ -145,14 +145,6 @@ ZXing::Binarizer toNativeBinarizer(ZXIBinarizer binarizer) {
     self.cppOpts = self.cppOpts.setValidateITFCheckSum(validateITFCheckSum);
 }
 
--(BOOL)returnCodabarStartEnd {
-    return self.cppOpts.returnCodabarStartEnd();
-}
-
--(void)setReturnCodabarStartEnd:(BOOL)returnCodabarStartEnd {
-    self.cppOpts = self.cppOpts.setReturnCodabarStartEnd(returnCodabarStartEnd);
-}
-
 -(BOOL)returnErrors {
     return self.cppOpts.returnErrors();
 }
@@ -198,10 +190,12 @@ ZXing::EanAddOnSymbol toNativeEanAddOnSymbol(ZXIEanAddOnSymbol eanAddOnSymbol) {
             return ZXITextMode::ZXITextModeECI;
         case ZXing::TextMode::HRI:
             return ZXITextMode::ZXITextModeHRI;
-        case ZXing::TextMode::Hex:
-            return ZXITextMode::ZXITextModeHex;
         case ZXing::TextMode::Escaped:
             return ZXITextMode::ZXITextModeEscaped;
+        case ZXing::TextMode::Hex:
+            return ZXITextMode::ZXITextModeHex;
+        case ZXing::TextMode::HexECI:
+            return ZXITextMode::ZXITextModeHexECI;
     }
 }
 
@@ -214,10 +208,12 @@ ZXing::TextMode toNativeTextMode(ZXITextMode mode) {
             return ZXing::TextMode::ECI;
         case ZXITextModeHRI:
             return ZXing::TextMode::HRI;
-        case ZXITextModeHex:
-            return ZXing::TextMode::Hex;
         case ZXITextModeEscaped:
             return ZXing::TextMode::Escaped;
+        case ZXITextModeHex:
+            return ZXing::TextMode::Hex;
+        case ZXITextModeHexECI:
+            return ZXing::TextMode::HexECI;
     }
 }
 

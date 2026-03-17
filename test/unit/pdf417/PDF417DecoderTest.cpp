@@ -490,7 +490,7 @@ TEST(PDF417DecoderTest, ECIMultipleNumeric)
 TEST(PDF417DecoderTest, ECIInvalid)
 {
 	EXPECT_EQ(decode({ 4, 927, 901, 0 }), L""); // non-charset ECI > 899 -> empty text result
-	EXPECT_EQ(Decode({4, 927, 901, 0}).content().bytes, ByteArray("AA")); // non-charset ECI > 899 -> ignored in binary result
+	EXPECT_EQ(Decode({4, 927, 901, 0}).content().bytes, std::vector<uint8_t>({'A', 'A'})); // non-charset ECI > 899 -> ignored in binary result
 	EXPECT_EQ(decode({ 3, 0, 927 }), L"AA"); // Malformed ECI at end silently ignored
 }
 
@@ -566,4 +566,12 @@ TEST(PDF417DecoderTest, Reserved)
 {
 	EXPECT_FALSE(valid({ 3, 903, 0 })); // Not supported
 	EXPECT_FALSE(valid({ 3, 0, 903 }));
+}
+
+TEST(PDF417DecoderTest, BytesECI)
+{
+	// No ECI ("AA")
+	EXPECT_EQ(Decode({ 2, 0 }).content().bytesECI(), ByteArray("]L2AA"));
+	// ECI 4 ("AA")
+	EXPECT_EQ(Decode({ 4, 927, 4, 0 }).content().bytesECI(), ByteArray("]L1\\000004AA"));
 }

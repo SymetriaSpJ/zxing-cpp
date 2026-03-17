@@ -18,29 +18,27 @@ std::string JsonEscapeStr(std::string_view str);
 std::string JsonUnEscapeStr(std::string_view str);
 
 template<typename T>
-inline std::string JsonProp(std::string_view key, T val, T ignore = {})
+inline std::string JsonProp(std::string_view key, const T& val, const T& ignore = {})
 {
-	if (val == ignore)
-		return {};
-
 	#define ZX_JSON_KEY_VAL(...) StrCat("\"", key, "\":", __VA_ARGS__, ',')
 	if constexpr (std::is_same_v<T, bool>)
-		return val ? ZX_JSON_KEY_VAL("true") : "";
+		return val != ignore ? ZX_JSON_KEY_VAL(val ? "true" : "false") : "";
 	else if constexpr (std::is_arithmetic_v<T>)
-		return ZX_JSON_KEY_VAL(std::to_string(val));
+		return val != ignore ? ZX_JSON_KEY_VAL(std::to_string(val)) : "";
 	else if constexpr (std::is_convertible_v<T, std::string_view>)
-		return ZX_JSON_KEY_VAL("\"" , JsonEscapeStr(val), "\"");
+		return std::string_view(val) != std::string_view(ignore) ? ZX_JSON_KEY_VAL("\"", JsonEscapeStr(val), "\"") : "";
 	else
 		static_assert("unsupported JSON value type");
 	#undef ZX_JSON_KEY_VAL
 }
 
-std::string_view JsonGetStr(std::string_view json, std::string_view key);
+// Finds the (potentially escaped / raw) value of the provided key
+std::string_view JsonFind(std::string_view json, std::string_view key);
 
 template <typename T>
 inline std::optional<T> JsonGet(std::string_view json, std::string_view key)
 {
-	auto str = JsonGetStr(json, key);
+	auto str = JsonFind(json, key);
 	if (!str.data())
 		return std::nullopt;
 

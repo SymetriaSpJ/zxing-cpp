@@ -44,8 +44,8 @@ static const char* JavaBarcodeFormatName(BarcodeFormat format)
 	case BarcodeFormat::MicroQRCode: return "MICRO_QR_CODE";
 	case BarcodeFormat::RMQRCode: return "RMQR_CODE";
 	case BarcodeFormat::DataBar: return "DATA_BAR";
-	case BarcodeFormat::DataBarExpanded: return "DATA_BAR_EXPANDED";
-	case BarcodeFormat::DataBarLimited: return "DATA_BAR_LIMITED";
+	case BarcodeFormat::DataBarExp: return "DATA_BAR_EXPANDED";
+	case BarcodeFormat::DataBarLtd: return "DATA_BAR_LIMITED";
 	case BarcodeFormat::DXFilmEdge: return "DX_FILM_EDGE";
 	case BarcodeFormat::UPCA: return "UPC_A";
 	case BarcodeFormat::UPCE: return "UPC_E";
@@ -115,8 +115,9 @@ static TextMode TextModeFromString(std::string_view name)
 		case "PLAIN"_h :   return TextMode::Plain;
 		case "ECI"_h :     return TextMode::ECI;
 		case "HRI"_h :     return TextMode::HRI;
-		case "HEX"_h :     return TextMode::Hex;
 		case "ESCAPED"_h : return TextMode::Escaped;
+		case "HEX"_h :     return TextMode::Hex;
+		case "HEXECI"_h :  return TextMode::HexECI;
 		default: throw std::invalid_argument("Invalid textMode name");
 	}
 }
@@ -288,10 +289,10 @@ static BarcodeFormats GetFormats(JNIEnv* env, jclass clsOptions, jobject opts)
 		return {};
 
 	jmethodID midName = env->GetMethodID(env->FindClass(PACKAGE "Format"), "name", "()Ljava/lang/String;");
-	BarcodeFormats ret;
+	std::vector<BarcodeFormat> ret;
 	for (int i = 0, size = env->GetArrayLength(objArray); i < size; ++i) {
 		auto objName = static_cast<jstring>(env->CallObjectMethod(env->GetObjectArrayElement(objArray, i), midName));
-		ret |= BarcodeFormatFromString(J2CString(env, objName));
+		ret.push_back(BarcodeFormatFromString(J2CString(env, objName)));
 	}
 	return ret;
 }
@@ -300,21 +301,22 @@ static ReaderOptions CreateReaderOptions(JNIEnv* env, jobject opts)
 {
 	jclass cls = env->GetObjectClass(opts);
 	return ReaderOptions()
-		.setFormats(GetFormats(env, cls, opts))
-		.setTryHarder(GetBooleanField(env, cls, opts, "tryHarder"))
-		.setTryRotate(GetBooleanField(env, cls, opts, "tryRotate"))
-		.setTryInvert(GetBooleanField(env, cls, opts, "tryInvert"))
-		.setTryDownscale(GetBooleanField(env, cls, opts, "tryDownscale"))
-		.setIsPure(GetBooleanField(env, cls, opts, "isPure"))
-		.setBinarizer(BinarizerFromString(GetEnumField(env, cls, opts, "binarizer", "Binarizer")))
-		.setDownscaleThreshold(GetIntField(env, cls, opts, "downscaleThreshold"))
-		.setDownscaleFactor(GetIntField(env, cls, opts, "downscaleFactor"))
-		.setMinLineCount(GetIntField(env, cls, opts, "minLineCount"))
-		.setMaxNumberOfSymbols(GetIntField(env, cls, opts, "maxNumberOfSymbols"))
-		.setTryCode39ExtendedMode(GetBooleanField(env, cls, opts, "tryCode39ExtendedMode"))
-		.setReturnErrors(GetBooleanField(env, cls, opts, "returnErrors"))
-		.setEanAddOnSymbol(EanAddOnSymbolFromString(GetEnumField(env, cls, opts, "eanAddOnSymbol", "EanAddOnSymbol")))
-		.setTextMode(TextModeFromString(GetEnumField(env, cls, opts, "textMode", "TextMode")))
+		.formats(GetFormats(env, cls, opts))
+		.tryHarder(GetBooleanField(env, cls, opts, "tryHarder"))
+		.tryRotate(GetBooleanField(env, cls, opts, "tryRotate"))
+		.tryInvert(GetBooleanField(env, cls, opts, "tryInvert"))
+		.tryDownscale(GetBooleanField(env, cls, opts, "tryDownscale"))
+		.tryDenoise(GetBooleanField(env, cls, opts, "tryDenoise"))
+		.isPure(GetBooleanField(env, cls, opts, "isPure"))
+		.binarizer(BinarizerFromString(GetEnumField(env, cls, opts, "binarizer", "Binarizer")))
+		.downscaleThreshold(GetIntField(env, cls, opts, "downscaleThreshold"))
+		.downscaleFactor(GetIntField(env, cls, opts, "downscaleFactor"))
+		.minLineCount(GetIntField(env, cls, opts, "minLineCount"))
+		.maxNumberOfSymbols(GetIntField(env, cls, opts, "maxNumberOfSymbols"))
+		.validateOptionalChecksum(GetBooleanField(env, cls, opts, "validateOptionalChecksum"))
+		.returnErrors(GetBooleanField(env, cls, opts, "returnErrors"))
+		.eanAddOnSymbol(EanAddOnSymbolFromString(GetEnumField(env, cls, opts, "eanAddOnSymbol", "EanAddOnSymbol")))
+		.textMode(TextModeFromString(GetEnumField(env, cls, opts, "textMode", "TextMode")))
 		;
 }
 

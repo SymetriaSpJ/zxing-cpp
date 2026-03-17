@@ -45,7 +45,7 @@ public class BarcodeReader(public var options: Options = Options()) {
 	}
 
 	public enum class TextMode {
-		PLAIN, ECI, HRI, HEX, ESCAPED
+		PLAIN, ECI, HRI, ESCAPED, HEX, HEXECI
 	}
 
 	public enum class ErrorType {
@@ -58,19 +58,20 @@ public class BarcodeReader(public var options: Options = Options()) {
 		var tryRotate: Boolean = false,
 		var tryInvert: Boolean = false,
 		var tryDownscale: Boolean = false,
+		var tryDenoise: Boolean = false,
 		var isPure: Boolean = false,
 		var binarizer: Binarizer = Binarizer.LOCAL_AVERAGE,
 		var downscaleFactor: Int = 3,
 		var downscaleThreshold: Int = 500,
 		var minLineCount: Int = 2,
 		var maxNumberOfSymbols: Int = 0xff,
+		var validateOptionalChecksum: Boolean = false,
+		@Deprecated("See https://github.com/zxing-cpp/zxing-cpp/discussions/704")
 		var tryCode39ExtendedMode: Boolean = true,
-		@Deprecated("See https://github.com/zxing-cpp/zxing-cpp/discussions/704")
+		@Deprecated("Use validateOptionalChecksum")
 		var validateCode39CheckSum: Boolean = false,
-		@Deprecated("See https://github.com/zxing-cpp/zxing-cpp/discussions/704")
+		@Deprecated("Use validateOptionalChecksum")
 		var validateITFCheckSum: Boolean = false,
-		@Deprecated("See https://github.com/zxing-cpp/zxing-cpp/discussions/704")
-		var returnCodabarStartEnd: Boolean = false,
 		var returnErrors: Boolean = false,
 		var eanAddOnSymbol: EanAddOnSymbol = EanAddOnSymbol.IGNORE,
 		var textMode: TextMode = TextMode.HRI,

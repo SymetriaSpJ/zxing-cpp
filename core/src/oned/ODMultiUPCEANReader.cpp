@@ -14,6 +14,7 @@
 #include "ODUPCEANCommon.h"
 #include "Barcode.h"
 #include "JSON.h"
+#include "SymbologyIdentifier.h"
 
 #include <cmath>
 
@@ -133,7 +134,7 @@ static bool EAN13(PartialResult& res, PatternView begin)
 	auto mid = begin.subView(27, MID_PATTERN.size());
 	auto end = begin.subView(56, END_PATTERN.size());
 
-	CHECK(end.isValid() && IsRightGuard(end, END_PATTERN, QUIET_ZONE_RIGHT_EAN) && IsPattern(mid, MID_PATTERN));
+	CHECK(IsRightGuard(end, END_PATTERN, QUIET_ZONE_RIGHT_EAN) && IsPattern(mid, MID_PATTERN));
 
 	auto next = begin.subView(END_PATTERN.size(), CHAR_LEN);
 	res.txt = " "; // make space for lgPattern character
@@ -165,7 +166,7 @@ static bool EAN8(PartialResult& res, PatternView begin)
 	auto mid = begin.subView(19, MID_PATTERN.size());
 	auto end = begin.subView(40, END_PATTERN.size());
 
-	CHECK(end.isValid() && IsRightGuard(end, END_PATTERN, QUIET_ZONE_RIGHT_EAN) && IsPattern(mid, MID_PATTERN));
+	CHECK(IsRightGuard(end, END_PATTERN, QUIET_ZONE_RIGHT_EAN) && IsPattern(mid, MID_PATTERN));
 
 	// additional plausibility check for the module size: it has to be about the same for both
 	// the guard patterns and the payload/data part.
@@ -192,7 +193,7 @@ static bool UPCE(PartialResult& res, PatternView begin)
 {
 	auto end = begin.subView(27, UPCE_END_PATTERN.size());
 
-	CHECK(end.isValid() && IsRightGuard(end, UPCE_END_PATTERN, QUIET_ZONE_RIGHT_UPC));
+	CHECK(IsRightGuard(end, UPCE_END_PATTERN, QUIET_ZONE_RIGHT_UPC));
 
 	// additional plausibility check for the module size: it has to be about the same for both
 	// the guard patterns and the payload/data part. This speeds up the falsepositives use case
@@ -259,11 +260,11 @@ static bool AddOn(PartialResult& res, PatternView begin, int digitCount)
 		constexpr int CHECK_DIGIT_ENCODINGS[] = {0x18, 0x14, 0x12, 0x11, 0x0C, 0x06, 0x03, 0x0A, 0x09, 0x05};
 		CHECK(Ean5Checksum(res.txt) == IndexOf(CHECK_DIGIT_ENCODINGS, lgPattern));
 	}
-	res.format = BarcodeFormat::Any; // make sure res.format is valid, see below
+	res.format = BarcodeFormat::EANUPC; // make sure res.format is valid, see below
 	return true;
 }
 
-Barcode MultiUPCEANReader::decodePattern(int rowNumber, PatternView& next, std::unique_ptr<RowReader::DecodingState>&) const
+BarcodeData MultiUPCEANReader::decodePattern(int rowNumber, PatternView& next, std::unique_ptr<RowReader::DecodingState>&) const
 {
 	const int minSize = 3 + 6*4 + 6; // UPC-E
 
@@ -317,12 +318,8 @@ Barcode MultiUPCEANReader::decodePattern(int rowNumber, PatternView& next, std::
 	if (_opts.eanAddOnSymbol() == EanAddOnSymbol::Require && !addOnRes.isValid())
 		return {};
 
-	return Barcode(res.txt, rowNumber, begin.pixelsInFront(), next.pixelsTillEnd(), res.format, symbologyIdentifier, error)
-#ifdef ZXING_EXPERIMENTAL_API
-		.addExtra(JsonProp(BarcodeExtra::UPCE, upceTxt))
-		.addExtra(JsonProp(BarcodeExtra::EanAddOn, addOnRes.txt))
-#endif
-		;
+	return LinearBarcode(res.format, res.txt, rowNumber, begin.pixelsInFront(), next.pixelsTillEnd(), symbologyIdentifier, error,
+						 JsonProp(BarcodeExtra::UPCE, upceTxt) + JsonProp(BarcodeExtra::EanAddOn, addOnRes.txt));
 }
 
 } // namespace ZXing::OneD

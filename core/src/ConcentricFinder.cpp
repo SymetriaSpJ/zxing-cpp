@@ -63,7 +63,7 @@ std::optional<PointF> CenterOfRing(const BitMatrix& image, PointI center, int ra
 	bool inner = nth < 0;
 	nth = std::abs(nth);
 	log(center, 3);
-	BitMatrixCursorI cur(image, center, {0, 1});
+	BitMatrixCursorI cur(image, center, {1, 0});
 	if (!cur.stepToEdge(nth, radius, inner))
 		return {};
 	cur.turnRight(); // move clock wise and keep edge on the right/left depending on backup
@@ -120,7 +120,7 @@ static std::vector<PointF> CollectRingPoints(const BitMatrix& image, PointF cent
 {
 	PointI centerI(center);
 	int radius = range;
-	BitMatrixCursorI cur(image, centerI, {0, 1});
+	BitMatrixCursorI cur(image, centerI, {1, 0});
 	if (!cur.stepToEdge(edgeIndex, radius, backup))
 		return {};
 	cur.turnRight(); // move clock wise and keep edge on the right/left depending on backup
@@ -167,7 +167,7 @@ static std::optional<QuadrilateralF> FitQadrilateralToPoints(PointF center, std:
 
 	std::array<const PointF*, 4> corners;
 	corners[0] = &points[0];
-	// find the oposite corner by looking for the farthest point near the oposite point
+	// find the opposite corner by looking for the farthest point near the opposite point
 	corners[2] = std::max_element(&points[Size(points) * 3 / 8], &points[Size(points) * 5 / 8], dist2Center);
 
 	// find the two in between corners by looking for the points farthest from the long diagonal
@@ -178,7 +178,7 @@ static std::optional<QuadrilateralF> FitQadrilateralToPoints(PointF center, std:
 	std::array lines{RegressionLine{corners[0] + 1, corners[1]}, RegressionLine{corners[1] + 1, corners[2]},
 					 RegressionLine{corners[2] + 1, corners[3]}, RegressionLine{corners[3] + 1, &points.back() + 1}};
 
-	if (std::any_of(lines.begin(), lines.end(), [](auto line) { return !line.isValid(); }))
+	if (std::any_of(lines.begin(), lines.end(), [](const auto& line) { return !line.isValid(); }))
 		return {};
 
 	std::array<const PointF*, 4> beg = {corners[0] + 1, corners[1] + 1, corners[2] + 1, corners[3] + 1};
@@ -226,13 +226,13 @@ std::optional<QuadrilateralF> FitSquareToPoints(const BitMatrix& image, PointF c
 	return res;
 }
 
-std::optional<QuadrilateralF> FindConcentricPatternCorners(const BitMatrix& image, PointF center, int range, int lineIndex)
+std::optional<QuadrilateralF> FindConcentricPatternCorners(const BitMatrix& image, PointF center, int range, int ringIndex)
 {
-	auto innerCorners = FitSquareToPoints(image, center, range, lineIndex, false);
+	auto innerCorners = FitSquareToPoints(image, center, range, ringIndex, false);
 	if (!innerCorners)
 		return {};
 
-	auto outerCorners = FitSquareToPoints(image, center, range, lineIndex + 1, true);
+	auto outerCorners = FitSquareToPoints(image, center, range, ringIndex + 1, true);
 	if (!outerCorners)
 		return {};
 

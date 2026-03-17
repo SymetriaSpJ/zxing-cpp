@@ -1,14 +1,16 @@
-cmake_minimum_required (VERSION 3.14)
+cmake_minimum_required (VERSION 3.16)
 
 
-set (CMAKE_CXX_COMPILER /usr/bin/clang++)
+set (CMAKE_CXX_COMPILER /usr/bin/clang++) # -fsanitize=fuzzer only available in clang
 
 project (ZXingFuzz)
 
 set (CMAKE_CXX_STANDARD 20)
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -march=native -fsanitize=address,fuzzer")
+set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set (ZXING_WRITERS OLD)
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -march=native -fsanitize=address,undefined,fuzzer")
+
+set (ZXING_WRITERS BOTH)
 set (ZXING_READERS ON)
 
 add_definitions (-DZXING_BUILD_FOR_TEST)
@@ -25,6 +27,7 @@ set (TESTS
 foreach (test ${TESTS})
     set (name "fuzz${test}")
     add_executable (${name} "${name}.cpp")
+    target_compile_options (${name} PRIVATE -DZXING_INTERNAL)
     target_link_libraries (${name} ZXing::ZXing)
 endforeach()
 

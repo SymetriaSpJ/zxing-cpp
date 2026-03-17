@@ -8,10 +8,10 @@
 #include "ODRowReader.h"
 #include "Range.h"
 #include "Pattern.h"
-#include "Barcode.h"
 
 #include <array>
 #include <cmath>
+#include <numeric>
 
 namespace ZXing::OneD::DataBar {
 
@@ -98,6 +98,7 @@ struct Pair
 	operator bool() const noexcept { return finder != 0; }
 	bool operator==(const Pair& o) const noexcept { return finder == o.finder && left == o.left && right == o.right; }
 	bool operator!=(const Pair& o) const noexcept { return !(*this == o); }
+	int center() const { return std::midpoint(xStart, xStop); }
 };
 
 struct PairHash
@@ -116,7 +117,7 @@ int ParseFinderPattern(const PatternView& view, bool reversed, const std::array<
 {
 	const auto e2e = NormalizedE2EPattern<5>(view, 15, reversed);
 
-	int best_i, best_e = 3;
+	int best_i = -1, best_e = 3;
 	for (int i = 0; i < Size(e2ePatterns); ++i) {
 		int e = 0;
 		for (int j = 0; j < 3; ++j)

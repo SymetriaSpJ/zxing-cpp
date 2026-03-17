@@ -43,6 +43,7 @@ android {
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
+        main.java.srcDirs += '../../android/zxingcpp/src/main/java'
     }
 
     defaultConfig {
@@ -63,7 +64,7 @@ android {
 
     externalNativeBuild {
         cmake {
-            path file('src/main/cpp/CMakeLists.txt')
+            path file('../../android/zxingcpp/src/main/cpp/CMakeLists.txt')
         }
     }
 
