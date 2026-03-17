@@ -19,7 +19,7 @@ import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
-import com.zxingcpp.BarcodeReader
+import zxingcpp.BarcodeReader
 import io.flutter.view.TextureRegistry
 import java.util.concurrent.Executors
 
@@ -48,7 +48,7 @@ class FitatuBarcodeScanner(
 		this.options = options
 		barcodeReader.options = BarcodeReader.Options(
 			formats = if (options.qrCode) setOf(
-				BarcodeReader.Format.QR_CODE, BarcodeReader.Format.MICRO_QR_CODE
+				BarcodeReader.Format.QR_CODE, BarcodeReader.Format.MICRO_QR_CODE, BarcodeReader.Format.RMQR_CODE
 			) else emptySet(),
 			tryHarder = options.tryHarder,
 			tryInvert = options.tryInvert,
@@ -103,64 +103,69 @@ class FitatuBarcodeScanner(
 				var previousCameraImage: CameraImage? = null
 
 				setAnalyzer(Executors.newSingleThreadExecutor()) { image ->
-					val cropSize = image.height.times(options.cropPercent).toInt()
-					val cropRect = Rect(
-						(image.width - cropSize) / 2,
-						(image.height - cropSize) / 2,
-						(image.width - cropSize) / 2 + cropSize,
-						(image.height - cropSize) / 2 + cropSize
-					)
-					image.setCropRect(cropRect)
+					image.use { image ->
+						val cropSize = image.height.times(options.cropPercent).toInt()
+						val cropRect = Rect(
+							(image.width - cropSize) / 2,
+							(image.height - cropSize) / 2,
+							(image.width - cropSize) / 2 + cropSize,
+							(image.height - cropSize) / 2 + cropSize
+						)
+						image.setCropRect(cropRect)
 
-					val cameraImage = CameraImage(
-						cropRect = CropRect(
-							left = cropRect.left.toLong(),
-							top = cropRect.top.toLong(),
-							right = cropRect.right.toLong(),
-							bottom = cropRect.bottom.toLong()
-						),
-						width = image.width.toLong(),
-						height = image.height.toLong(),
-						rotationDegrees = image.imageInfo.rotationDegrees.toLong()
-					)
+						val cameraImage = CameraImage(
+							cropRect = CropRect(
+								left = cropRect.left.toLong(),
+								top = cropRect.top.toLong(),
+								right = cropRect.right.toLong(),
+								bottom = cropRect.bottom.toLong()
+							),
+							width = image.width.toLong(),
+							height = image.height.toLong(),
+							rotationDegrees = image.imageInfo.rotationDegrees.toLong()
+						)
 
-					if (previousCameraImage != cameraImage) {
-						previousCameraImage = cameraImage
-						ContextCompat.getMainExecutor(context).execute {
-							flutterApi.onCameraImage(cameraImage) {}
-						}
-					}
-
-					try {
-						val result = barcodeReader.read(image)
-						val code = result?.text?.trim()?.takeIf { it.isNotBlank() } ?: return@setAnalyzer
-						val format = when (result.format) {
-							BarcodeReader.Format.AZTEC -> FitatuBarcodeFormat.AZTEC
-							BarcodeReader.Format.CODABAR -> FitatuBarcodeFormat.CODABAR
-							BarcodeReader.Format.CODE_39 -> FitatuBarcodeFormat.CODE39
-							BarcodeReader.Format.CODE_93 -> FitatuBarcodeFormat.CODE93
-							BarcodeReader.Format.CODE_128 -> FitatuBarcodeFormat.CODE128
-							BarcodeReader.Format.DATA_BAR -> FitatuBarcodeFormat.DATA_BAR
-							BarcodeReader.Format.DATA_BAR_EXPANDED -> FitatuBarcodeFormat.DATA_BAR_EXPANDED
-							BarcodeReader.Format.DATA_MATRIX -> FitatuBarcodeFormat.DATA_MATRIX
-							BarcodeReader.Format.EAN_8 -> FitatuBarcodeFormat.EAN8
-							BarcodeReader.Format.EAN_13 -> FitatuBarcodeFormat.EAN13
-							BarcodeReader.Format.ITF -> FitatuBarcodeFormat.ITF
-							BarcodeReader.Format.MAXICODE -> FitatuBarcodeFormat.MAXICODE
-							BarcodeReader.Format.PDF_417 -> FitatuBarcodeFormat.PDF417
-							BarcodeReader.Format.QR_CODE -> FitatuBarcodeFormat.QR_CODE
-							BarcodeReader.Format.MICRO_QR_CODE -> FitatuBarcodeFormat.MICRO_QR_CODE
-							BarcodeReader.Format.UPC_A -> FitatuBarcodeFormat.UPC_A
-							BarcodeReader.Format.UPC_E -> FitatuBarcodeFormat.UPC_E
-							BarcodeReader.Format.NONE -> FitatuBarcodeFormat.UNKNOWN
+						if (previousCameraImage != cameraImage) {
+							previousCameraImage = cameraImage
+							ContextCompat.getMainExecutor(context).execute {
+								flutterApi.onCameraImage(cameraImage) {}
+							}
 						}
 
-						ContextCompat.getMainExecutor(context).execute {
-							flutterApi.onScanResult(code, format) {}
-						}
-					} catch (e: Exception) {
-						ContextCompat.getMainExecutor(context).execute {
-							flutterApi.onScanError(e.toString()) {}
+						try {
+							val result = barcodeReader.read(image).firstOrNull()
+							val code = result?.text?.trim()?.takeIf { it.isNotBlank() } ?: return@use
+							val format = when (result.format) {
+								BarcodeReader.Format.AZTEC -> FitatuBarcodeFormat.AZTEC
+								BarcodeReader.Format.CODABAR -> FitatuBarcodeFormat.CODABAR
+								BarcodeReader.Format.CODE_39 -> FitatuBarcodeFormat.CODE39
+								BarcodeReader.Format.CODE_93 -> FitatuBarcodeFormat.CODE93
+								BarcodeReader.Format.CODE_128 -> FitatuBarcodeFormat.CODE128
+								BarcodeReader.Format.DATA_BAR -> FitatuBarcodeFormat.DATA_BAR
+								BarcodeReader.Format.DATA_BAR_EXPANDED -> FitatuBarcodeFormat.DATA_BAR_EXPANDED
+								BarcodeReader.Format.DATA_MATRIX -> FitatuBarcodeFormat.DATA_MATRIX
+								BarcodeReader.Format.EAN_8 -> FitatuBarcodeFormat.EAN8
+								BarcodeReader.Format.EAN_13 -> FitatuBarcodeFormat.EAN13
+								BarcodeReader.Format.ITF -> FitatuBarcodeFormat.ITF
+								BarcodeReader.Format.MAXICODE -> FitatuBarcodeFormat.MAXICODE
+								BarcodeReader.Format.PDF_417 -> FitatuBarcodeFormat.PDF417
+								BarcodeReader.Format.QR_CODE -> FitatuBarcodeFormat.QR_CODE
+								BarcodeReader.Format.MICRO_QR_CODE -> FitatuBarcodeFormat.MICRO_QR_CODE
+								BarcodeReader.Format.UPC_A -> FitatuBarcodeFormat.UPC_A
+								BarcodeReader.Format.UPC_E -> FitatuBarcodeFormat.UPC_E
+								BarcodeReader.Format.DATA_BAR_LIMITED -> FitatuBarcodeFormat.DATA_BAR_LIMITED
+								BarcodeReader.Format.DX_FILM_EDGE -> FitatuBarcodeFormat.DX_FILM_EDGE
+								BarcodeReader.Format.RMQR_CODE -> FitatuBarcodeFormat.RMQR_CODE
+								BarcodeReader.Format.NONE -> FitatuBarcodeFormat.UNKNOWN
+							}
+
+							ContextCompat.getMainExecutor(context).execute {
+								flutterApi.onScanResult(code, format) {}
+							}
+						} catch (e: Exception) {
+							ContextCompat.getMainExecutor(context).execute {
+								flutterApi.onScanError(e.toString()) {}
+							}
 						}
 					}
 				}
