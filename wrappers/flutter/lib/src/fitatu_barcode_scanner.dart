@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:fitatu_barcode_scanner/fitatu_barcode_scanner.dart';
-import 'package:fitatu_barcode_scanner/src/infra/android/camera_permissions_guard.dart';
 import 'package:fitatu_barcode_scanner/src/infra/common/fitatu_mobile_scanner_platform.dart';
 import 'package:fitatu_barcode_scanner/src/pigeons/fitatu_barcode_scanner.pigeon.dart';
 import 'package:fitatu_barcode_scanner/src/scanner_preview_mixin.dart';
@@ -109,11 +108,7 @@ sealed class FitatuBarcodeScannerController {
   final ScannerOptions scannerOptions;
 
   static Future<FitatuBarcodeScannerController> platform(ScannerOptions options) async {
-    if (Platform.isAndroid) {
-      final scanner = _FitatuBarcodeScanner();
-      await scanner.init(options);
-      return _AndroidBarcodeScanner(options, scanner);
-    } else if (Platform.isIOS) {
+    if (Platform.isAndroid || Platform.isIOS) {
       return _IOSBarcodeScanner(options);
     }
 

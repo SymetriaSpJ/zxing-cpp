@@ -43,18 +43,7 @@ class FitatuBarcodeScannerPreviewState extends State<FitatuBarcodeScannerPreview
       builder: (context, snapshot) {
         final controller = snapshot.data;
 
-        if (Platform.isAndroid) {
-          preview = CameraPermissionsGuard(
-            child: _AndroidFitatuScannerPreview(
-              key: _key,
-              controller: controller is _AndroidBarcodeScanner ? controller : null,
-              onResult: widget.onResult,
-              onChanged: widget.onChanged,
-              onError: widget.onError,
-              overlayBuilder: widget.previewOverlayBuilder,
-            ),
-          );
-        } else if (Platform.isIOS) {
+        if (Platform.isAndroid || Platform.isIOS) {
           preview = _CommonFitatuScannerPreview(
             key: _key,
             controller: controller is _IOSBarcodeScanner ? controller : null,
